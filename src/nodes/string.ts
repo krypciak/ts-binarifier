@@ -14,6 +14,6 @@ export class StringNode extends Node {
     }
 
     genDecode(): string {
-        return `${this.genDecodeWrapOptional(`encoder.string()`)}`
+        return `${this.genDecodeWrapOptional(`decoder.string()`)}`
     }
 }

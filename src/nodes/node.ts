@@ -21,7 +21,7 @@ export abstract class Node {
             const lastStr = str.at(-1)
             const insertNewLineAtEnd = true || lastStr == ' ' || lastStr == '\n' || lastStr == '}'
             return (
-                `if (${varName} === undefined) encoder.u1(); else {` +
+                `if (${varName} === undefined) encoder.u1(false); else {` +
                 (insertNewLineAtStart ? '\n' + Node.indent(indent) : '') +
                 str +
                 (insertNewLineAtEnd ? '\n' + Node.indent(indent - 1) : '') +
@@ -35,7 +35,7 @@ export abstract class Node {
 
     protected genDecodeWrapOptional(str: string) {
         if (this.optional) {
-            return `decoder.u1(false) ? ${str} : undefined`
+            return `decoder.u1() ? ${str} : undefined`
         } else {
             return str
         }

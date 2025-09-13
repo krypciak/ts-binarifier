@@ -137,7 +137,7 @@ export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, 
     }
 }
 
-function printType(type: ts.Type | undefined, checker: ts.TypeChecker, indent = 0) {
+export function printType(type: ts.Type | undefined, checker: ts.TypeChecker, indent = 0) {
     if (indent == 0) console.log('\n')
     const spacing = '  '.repeat(indent)
 

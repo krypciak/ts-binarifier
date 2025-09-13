@@ -73,3 +73,15 @@ test('encode decode f64', () => {
     expect(decoder.f64()).toBe(v1)
 
 })
+
+test('encode decode string', () => {
+    const encoder = new Encoder()
+    const str = "abcdefg"
+    encoder.string(str)
+
+    const buf = encoder.getBuffer()
+    const decoder = new Decoder(buf)
+
+    expect(decoder.string()).toBe(str)
+
+})

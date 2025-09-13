@@ -85,11 +85,6 @@ export class Decoder {
     }
 
     string() {
-        const len = this.u8()
-        let strArr: string[] = new Array(len)
-        for (let i = 0; i < len; i++) {
-            strArr[i] = String.fromCharCode(this.u8())
-        }
-        return strArr.join('')
+        return String.fromCharCode(...new Array(this.u8()).fill(null).map(_ => this.u8()))
     }
 }

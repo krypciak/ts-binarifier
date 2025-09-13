@@ -14,6 +14,6 @@ export class JsonNode extends Node {
     }
 
     genDecode(): string {
-        return `${this.genDecodeWrapOptional(`JSON.parse(encoder.string())`)}`
+        return `${this.genDecodeWrapOptional(`JSON.parse(decoder.string())`)}`
     }
 }

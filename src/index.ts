@@ -1,5 +1,5 @@
 import fs from 'fs'
-import ts, { type FunctionDeclaration } from 'typescript'
+import ts from 'typescript'
 import { assert } from './assert'
 import { parseToNode } from './type-parser'
 import './colors'
@@ -30,45 +30,37 @@ function printNode(node: ts.Node | undefined) {
     console.log(node.kind, node.getText().slice(0, 100).replaceAll(/\n/g, ' '))
 }
 
-function getFunctionType(program: ts.Program, checker: ts.TypeChecker, typesForFile: string, typesForFunc: string) {
+function getType(program: ts.Program, checker: ts.TypeChecker, typesForFile: string, typeName: string) {
     const file = program.getSourceFiles().find(file => file.fileName.endsWith(typesForFile))
     assert(file, 'file not found')
 
-    const funcNode = file.statements.find(
-        st => ts.isFunctionDeclaration(st) && st.name?.getText() == typesForFunc
-    ) as FunctionDeclaration
-    assert(funcNode, 'func not found')
-    assert(funcNode.name, 'func has no name')
-    // printNode(funcNode)
+    const typeNode = file.statements.find(
+        st => ts.isTypeAliasDeclaration(st) && st.name?.getText() == typeName
+    ) as ts.TypeAliasDeclaration
+    assert(typeNode, 'type node not found')
+    assert(typeNode.name, 'type node has no name')
 
-    const symbol = checker.getSymbolAtLocation(funcNode.name)
-    assert(symbol, 'symbol undefined')
-    const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!)
-    const signatures = type.getCallSignatures()
-    assert(signatures.length == 1, 'func has multiple signatures')
-    const signature = signatures[0]
-    const returnType: ts.Type = checker.getReturnTypeOfSignature(signature)
-    return returnType
+    const type = checker.getTypeAtLocation(typeNode)
+    return { type, fullPath: file.fileName }
 }
 
 async function run() {
     const { program, checker } = await createProgram(
         '/home/krypek/home/Programming/crosscode/instances/cc-server/assets/mods/cc-multibakery'
     )
-    // const filePath = 'src/state/entity/ig_ENTITY_PushPullBlock.ts'
-    // const filePath = 'sc_ItemDropEntity.ts'
-    // const funcName = 'getState'
     const filePath = 'src/state/states.ts'
-    const funcName = 'das'
+    const typeName = 'GenerateTypeStateUpdatePacket'
 
-    const type = getFunctionType(program, checker, filePath, funcName)
+    const { type, fullPath } = getType(program, checker, filePath, typeName)
     // printType(type, checker)
 
     const node = parseToNode(type, checker)
     console.log(node.print())
     // console.dir(node, { depth: null })
 
-    codeGen(node)
+    const outFile = '/home/krypek/a.ts'
+    const code = codeGen(node, fullPath, typeName, outFile)
+    await fs.promises.writeFile(outFile, code)
 }
 
 await run()
