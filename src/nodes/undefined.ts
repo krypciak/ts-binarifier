@@ -8,4 +8,12 @@ export class UndefinedNode extends Node {
     print() {
         return 'undefined'.gray
     }
+
+    genEncode(_varName: string): string {
+        return ``
+    }
+
+    genDecode(): string {
+        return `undefined`
+    }
 }

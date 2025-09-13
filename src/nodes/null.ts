@@ -8,4 +8,12 @@ export class NullNode extends Node {
     print(_indent: number = 0, ignoreOptional?: boolean) {
         return 'null'.gray + this.optionalSuffix(ignoreOptional)
     }
+
+    genEncode(_varName: string): string {
+        return ``
+    }
+
+    genDecode(): string {
+        return `null`
+    }
 }

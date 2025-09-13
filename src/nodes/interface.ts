@@ -10,17 +10,36 @@ export class InterfaceNode extends Node {
 
     print(indent: number = 0, ignoreOptional?: boolean) {
         return (
-            '{\n' +
             Object.entries(this.nodes)
-                .map(
-                    ([k, v]) =>
-                        ' '.repeat(indent + Node.indentMulti) + k + ': ' + v.print(indent + Node.indentMulti)
-                )
-                .join(`,\n`) +
+                .map(([k, v]) => Node.indent(indent) + k + ': ' + v.print(indent + 1))
+                .join(`,`) +
             '\n' +
-            ' '.repeat(indent) +
+            Node.indent(indent) +
             '}' +
             this.optionalSuffix(ignoreOptional)
+        )
+    }
+
+    genEncode(varName: string, indent: number = 0): string {
+        return this.genEncodeWrapOptional(
+            varName,
+            indent =>
+                Object.entries(this.nodes)
+                    .map(([k, v]) => v.genEncode(`${varName}['${k}']`, indent))
+                    .join('\n' + Node.indent(indent)),
+            indent
+        )
+    }
+
+    genDecode(indent: number = 0): string {
+        return this.genDecodeWrapOptional(
+            `{\n` +
+                `${Object.entries(this.nodes)
+                    .map(([k, v]) => Node.indent(indent + 1) + `'${k}': ${v.genDecode(indent + 1)}`)
+                    .join(',\n')}` +
+                `\n` +
+                Node.indent(indent) +
+                `}`
         )
     }
 }

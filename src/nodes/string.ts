@@ -9,7 +9,11 @@ export class StringNode extends Node {
         return 'string'.green + this.optionalSuffix(ignoreOptional)
     }
 
-    genEncode(varName: string): string {
-        return `{ if (${varName} === undefined) bit(0) else { byte(${varName}.length); string(${varName}); } }`
+    genEncode(varName: string, indent: number = 0): string {
+        return this.genEncodeWrapOptional(varName, () => `encoder.string(${varName})`, indent)
+    }
+
+    genDecode(): string {
+        return `${this.genDecodeWrapOptional(`encoder.string()`)}`
     }
 }

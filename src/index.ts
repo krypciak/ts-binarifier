@@ -3,6 +3,7 @@ import ts, { type FunctionDeclaration } from 'typescript'
 import { assert } from './assert'
 import { parseToNode } from './type-parser'
 import './colors'
+import { codeGen } from './code-gen'
 
 async function createProgram(projectDir: string) {
     const configPath = projectDir + '/tsconfig.json'
@@ -66,6 +67,8 @@ async function run() {
     const node = parseToNode(type, checker)
     console.log(node.print())
     // console.dir(node, { depth: null })
+
+    codeGen(node)
 }
 
 await run()
