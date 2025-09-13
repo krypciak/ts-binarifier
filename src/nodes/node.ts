@@ -17,14 +17,15 @@ export abstract class Node {
         if (this.optional) {
             indent++
             const str = strFunc(indent)
-            const insertNewLineAtStart = true
-            const lastStr = str.at(-1)
-            const insertNewLineAtEnd = true || lastStr == ' ' || lastStr == '\n' || lastStr == '}'
             return (
-                `if (${varName} === undefined) encoder.u1(false); else {` +
-                (insertNewLineAtStart ? '\n' + Node.indent(indent) : '') +
+                `if (${varName} === undefined || ${varName} === null) encoder.u1(false); else {` +
+                '\n' +
+                Node.indent(indent) +
+                `encoder.u1(true)\n` +
+                Node.indent(indent) +
                 str +
-                (insertNewLineAtEnd ? '\n' + Node.indent(indent - 1) : '') +
+                '\n' +
+                Node.indent(indent - 1) +
                 '}'
             )
         } else {

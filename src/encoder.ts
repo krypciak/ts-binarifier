@@ -11,7 +11,7 @@ export class Encoder {
         while (bitLength) {
             const v = data[dataI] >> dataOffset
             this.buf[this.buf.length - 1] |= v << this.bufOffset
-            const put = Math.min(bitLength, 8 - this.bufOffset)
+            const put = Math.min(bitLength, 8 - this.bufOffset, 8 - dataOffset)
             this.bufOffset += put
             if (this.bufOffset >= 8) {
                 this.bufOffset -= 8
@@ -27,15 +27,19 @@ export class Encoder {
     }
 
     u1(v: number | boolean) {
+        // console.log('encode u1:', v)
         this.pushData([v ? 1 : 0], 1)
     }
     u8(v: number, length: number = 8) {
+        // console.log('encode u8:', v, 'len:', length)
         this.pushData([v], length)
     }
     u16(v: number, length: number = 16) {
+        // console.log('encode u16:', v, 'len:', length)
         this.pushData([v & 255, (v & 65280) >> 8], length)
     }
     u32(v: number, length: number = 32) {
+        // console.log('encode u32:', v, 'len:', length)
         this.pushData([v & 255, (v & 65280) >> 8], length)
     }
 
@@ -56,18 +60,24 @@ export class Encoder {
     }
 
     f32(v: number) {
+        // console.log('encode f32:', v)
         return this.pushData(this.doubleToIEEE32(v), 32)
     }
 
     f64(v: number) {
+        // console.log('encode f64:', v)
         return this.pushData(this.doubleToIEEE64(v), 64)
     }
 
     string(v: string) {
-        assert(v.length < 256)
-        this.u8(v.length)
+        // console.log('encode string:', v, 'len:', v.length)
+        assert(v.length < 65536)
+        this.u16(v.length)
         for (let i = 0; i < v.length; i++) {
-            this.u8(v.charCodeAt(i))
+            const char = v.charCodeAt(i)
+            assert(char >= 0)
+            assert(char < 256)
+            this.u8(char)
         }
     }
 

@@ -16,7 +16,6 @@ test('encode decode boolean', () => {
     expect(decoder.u1()).toBe(false)
     expect(decoder.u1()).toBe(false)
     expect(decoder.u1()).toBe(true)
-
 })
 
 test('encode decode u8', () => {
@@ -29,7 +28,6 @@ test('encode decode u8', () => {
 
     expect(decoder.u8()).toBe(23)
     expect(decoder.u8()).toBe(218)
-
 })
 
 test('encode decode u8 boolean', () => {
@@ -59,7 +57,6 @@ test('encode decode f32', () => {
     const decoder = new Decoder(buf)
 
     expect(decoder.f32().toFixed(5)).toBe(v1.toFixed(5))
-
 })
 
 test('encode decode f64', () => {
@@ -71,17 +68,50 @@ test('encode decode f64', () => {
     const decoder = new Decoder(buf)
 
     expect(decoder.f64()).toBe(v1)
+})
 
+test('encode decode f64 offset', () => {
+    const encoder = new Encoder()
+    const v1 = 218.134432
+    encoder.u1(true)
+    encoder.f64(v1)
+
+    const buf = encoder.getBuffer()
+    const decoder = new Decoder(buf)
+
+    expect(decoder.u1()).toBe(true)
+    expect(decoder.f64()).toBe(v1)
 })
 
 test('encode decode string', () => {
     const encoder = new Encoder()
-    const str = "abcdefg"
+    const str = 'abcdefg'
     encoder.string(str)
 
     const buf = encoder.getBuffer()
     const decoder = new Decoder(buf)
 
     expect(decoder.string()).toBe(str)
+})
 
+test('encode decode mix', () => {
+    const encoder = new Encoder()
+    const str1 = 'abcdefg'
+    const str2 = 'client1'
+    const str3 = 'i dont know'
+    const v1 = 1.483294
+    encoder.u1(true)
+    encoder.string(str1)
+    encoder.string(str2)
+    encoder.f64(v1)
+    encoder.string(str3)
+
+    const buf = encoder.getBuffer()
+    const decoder = new Decoder(buf)
+
+    expect(decoder.u1()).toBe(true)
+    expect(decoder.string()).toBe(str1)
+    expect(decoder.string()).toBe(str2)
+    expect(decoder.f64()).toBe(v1)
+    expect(decoder.string()).toBe(str3)
 })

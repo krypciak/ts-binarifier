@@ -30,7 +30,7 @@ export class ArrayNode extends Node {
 
     genDecode(indent: number = 0): string {
         return this.genDecodeWrapOptional(
-            `new Array(decoder.u8()).fill(null).map(_ => (\n` +
+            `new Array(decoder.u16()).fill(null).map(_ => (\n` +
                 Node.indent(indent + 1) +
                 `${this.type.genDecode(indent + 1)}` +
                 `\n` +

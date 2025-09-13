@@ -3,8 +3,8 @@ import * as path from 'path'
 
 export function codeGen(type: Node, typeImportPath: string, typeShortName: string, destPath: string) {
     const destDir = path.dirname(destPath)
-    const encoderPath = '/home/krypek/home/Programming/repos/binarifier/src/encoder'
-    const decoderPath = '/home/krypek/home/Programming/repos/binarifier/src/decoder'
+    const encoderPath = new URL('./encoder', import.meta.url).pathname
+    const decoderPath = new URL('./decoder', import.meta.url).pathname
     const code = genParsingClass(
         type,
         'Gen',
@@ -33,16 +33,18 @@ function genParsingClass(
         '\n' +
         `export class ${className} {\n` +
         Node.indent(1) +
-        `encode(data: ${typeShortName}): void {\n` +
+        `static encode(data: ${typeShortName}): Uint8Array {\n` +
         Node.indent(2) +
         `const encoder = new Encoder()\n` +
         Node.indent(2) +
         type.genEncode('data', 2) +
         '\n' +
+        Node.indent(2) +
+        `return encoder.getBuffer()\n` +
         Node.indent(1) +
         '}\n\n' +
         Node.indent(1) +
-        `decode(buf: Uint8Array): ${typeShortName} {\n` +
+        `static decode(buf: Uint8Array): ${typeShortName} {\n` +
         Node.indent(2) +
         `const decoder = new Decoder(buf)\n` +
         Node.indent(2) +

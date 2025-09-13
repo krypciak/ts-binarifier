@@ -11,6 +11,7 @@ export class Decoder {
             this.bufOffset = 0
             this.bufI++
         }
+        // console.log('decode u1: ', v != 0)
         return v != 0
     }
 
@@ -21,7 +22,7 @@ export class Decoder {
 
         let bitsLeft = bitLength
         while (bitsLeft) {
-            const read = Math.min(bitsLeft, 8 - this.bufOffset)
+            const read = Math.min(bitsLeft, 8 - this.bufOffset, 8 - dataOffset)
             const mask = (1 << read) - 1
             const rawValue = (this.buf[this.bufI] >> this.bufOffset) & mask
             const orValue = rawValue << dataOffset
@@ -64,9 +65,17 @@ export class Decoder {
     }
 
     u8() {
-        return this.u(8)
+        const v = this.u(8)
+        // console.log('decode u8:', v)
+        return v
     }
-    
+
+    u16() {
+        const v = this.u(16)
+        // console.log('decode u16:', v)
+        return v
+    }
+
     private IEEE32ToDouble(arr: Uint8Array) {
         return new Float32Array(arr.buffer)[0]
     }
@@ -77,14 +86,26 @@ export class Decoder {
 
     f32() {
         const arr = this.bin(32)
-        return this.IEEE32ToDouble(arr)
+        const v = this.IEEE32ToDouble(arr)
+        // console.log('decode f32: ', v)
+        return v
     }
 
     f64() {
-        return this.IEEE64ToDouble(this.bin(64))
+        const arr = this.bin(64)
+        const v = this.IEEE64ToDouble(arr)
+        // console.log('decode f64: ', v)
+        return v
     }
 
     string() {
-        return String.fromCharCode(...new Array(this.u8()).fill(null).map(_ => this.u8()))
+        const len = this.u16()
+        // console.log('decode string len:', len)
+
+        let strArr: string[] = new Array(len)
+        for (let i = 0; i < len; i++) {
+            strArr[i] = String.fromCharCode(this.u8())
+        }
+        return strArr.join('')
     }
 }

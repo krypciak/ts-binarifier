@@ -29,9 +29,10 @@ test('encoder u8 boolean', () => {
 
 test('encoder string', () => {
     const encoder = new Encoder()
-    encoder.string("ab")
+    encoder.string('ab')
     expect(encoder.bufOffset).toBe(0)
     expect(encoder.buf[0]).toBe(2)
-    expect(encoder.buf[1]).toBe(97)
-    expect(encoder.buf[2]).toBe(98)
+    expect(encoder.buf[1]).toBe(0)
+    expect(encoder.buf[2]).toBe(97)
+    expect(encoder.buf[3]).toBe(98)
 })
