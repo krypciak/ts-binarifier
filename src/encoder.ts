@@ -1,3 +1,4 @@
+import { kill } from 'process'
 import { assert } from './assert'
 
 export class Encoder {
@@ -82,14 +83,10 @@ export class Encoder {
 
     string(v: string) {
         // console.log('encode string:', v, 'len:', v.length)
-        assert(v.length < 65536)
-        this.u16(v.length)
-        for (let i = 0; i < v.length; i++) {
-            const char = v.charCodeAt(i)
-            assert(char >= 0)
-            assert(char < 256)
-            this.u8(char)
-        }
+        const buf = new TextEncoder().encode(v)
+        assert(buf.length < 65536)
+        this.u16(buf.length)
+        this.pushData(buf)
     }
 
     getBuffer() {

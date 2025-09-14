@@ -142,6 +142,17 @@ test('encode decode string', () => {
     expect(decoder.string()).toBe(str)
 })
 
+test('encode decode string unicode', () => {
+    const encoder = new Encoder()
+    const str = '好hi'
+    encoder.string(str)
+
+    const buf = encoder.getBuffer()
+    const decoder = new Decoder(buf)
+
+    expect(decoder.string()).toBe(str)
+})
+
 test('encode decode mix', () => {
     const encoder = new Encoder()
     const str1 = 'abcdefg'

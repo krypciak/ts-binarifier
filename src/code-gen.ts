@@ -6,16 +6,18 @@ export function codeGen(
     className: string,
     typeImportPath: string,
     typeShortName: string,
-    destPath: string
+    destPath: string,
+    encoderPath?: string,
+    decoderPath?: string
 ) {
     const destDir = path.dirname(destPath)
-    const encoderPath = new URL('./encoder', import.meta.url).pathname
-    const decoderPath = new URL('./decoder', import.meta.url).pathname
+    encoderPath ??= './' + path.relative(destDir, new URL('./encoder', import.meta.url).pathname)
+    decoderPath ??= './' + path.relative(destDir, new URL('./decoder', import.meta.url).pathname)
     const code = genParsingClass(
         type,
         className,
-        './' + path.relative(destDir, encoderPath),
-        './' + path.relative(destDir, decoderPath),
+        encoderPath,
+        decoderPath,
         typeShortName,
         './' + path.relative(destDir, typeImportPath),
         typeShortName

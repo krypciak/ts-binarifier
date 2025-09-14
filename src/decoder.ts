@@ -121,13 +121,11 @@ export class Decoder {
     }
 
     string() {
-        const len = this.u16()
+        const bufLen = this.u16()
         // console.log('decode string len:', len)
 
-        let strArr: string[] = new Array(len)
-        for (let i = 0; i < len; i++) {
-            strArr[i] = String.fromCharCode(this.u8())
-        }
-        return strArr.join('')
+        const buf = this.bin(bufLen * 8)
+        const str = new TextDecoder().decode(buf)
+        return str
     }
 }
