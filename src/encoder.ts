@@ -1,7 +1,7 @@
 import { assert } from './assert'
 
 export class Encoder {
-    buf: number[] = [0]
+    private buf: number[] = [0]
     bufOffset: number = 0
 
     private pushData(data: number[] | Uint8Array, bitLength: number = data.length * 8) {
@@ -30,6 +30,7 @@ export class Encoder {
         // console.log('encode boolean:', v)
         this.pushData([v ? 1 : 0], 1)
     }
+
     u8(v: number, length: number = 8) {
         // console.log('encode u8:', v, 'len:', length)
         this.pushData([v], length)
@@ -41,6 +42,16 @@ export class Encoder {
     u32(v: number, length: number = 32) {
         // console.log('encode u32:', v, 'len:', length)
         this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >> 24) & 0xff], length)
+    }
+
+    i8(v: number, length: number = 8) {
+        this.u8(v, length)
+    }
+    i16(v: number, length: number = 32) {
+        this.i16(v, length)
+    }
+    i32(v: number, length: number = 32) {
+        this.i32(v, length)
     }
 
     private doubleToIEEE32(f: number) {

@@ -44,7 +44,7 @@ export class Decoder {
         return data
     }
 
-    u(bitLength: number): number {
+    u(bitLength: number, signed: boolean = false): number {
         let num = 0
         let bitsLeft = bitLength
         while (bitsLeft) {
@@ -60,6 +60,11 @@ export class Decoder {
                 this.bufI++
             }
             bitsLeft -= read
+        }
+        if (signed) {
+            if (num & (1 << (bitLength - 1))) {
+                num -= 1 << bitLength
+            }
         }
         return num
     }
@@ -77,6 +82,19 @@ export class Decoder {
     u32() {
         const v = this.u(32)
         // console.log('decode u16:', v)
+        return v
+    }
+
+    i8() {
+        const v = this.u(8, true)
+        return v
+    }
+    i16() {
+        const v = this.u(16, true)
+        return v
+    }
+    i32() {
+        const v = this.u(32, true)
         return v
     }
 

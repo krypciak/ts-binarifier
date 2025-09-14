@@ -58,6 +58,26 @@ test('encode decode u32', () => {
     expect(decoder.u32()).toBe(v2)
 })
 
+test('encode decode i8', () => {
+    const encoder = new Encoder()
+    const v1 = 1
+    const v2 = 99
+    const v3 = -1
+    const v4 = -100
+    encoder.i8(v1)
+    encoder.i8(v2)
+    encoder.i8(v3)
+    encoder.i8(v4)
+
+    const buf = encoder.getBuffer()
+    const decoder = new Decoder(buf)
+
+    expect(decoder.i8()).toBe(v1)
+    expect(decoder.i8()).toBe(v2)
+    expect(decoder.i8()).toBe(v3)
+    expect(decoder.i8()).toBe(v4)
+})
+
 test('encode decode u8 boolean', () => {
     const encoder = new Encoder()
     encoder.boolean(0)
