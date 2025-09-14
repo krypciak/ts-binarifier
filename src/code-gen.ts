@@ -1,13 +1,19 @@
 import { Node } from './nodes/node'
 import * as path from 'path'
 
-export function codeGen(type: Node, typeImportPath: string, typeShortName: string, destPath: string) {
+export function codeGen(
+    type: Node,
+    className: string,
+    typeImportPath: string,
+    typeShortName: string,
+    destPath: string
+) {
     const destDir = path.dirname(destPath)
     const encoderPath = new URL('./encoder', import.meta.url).pathname
     const decoderPath = new URL('./decoder', import.meta.url).pathname
     const code = genParsingClass(
         type,
-        'Gen',
+        className,
         './' + path.relative(destDir, encoderPath),
         './' + path.relative(destDir, decoderPath),
         typeShortName,
