@@ -20,7 +20,7 @@ async function run() {
 
     const { type, fullPath } = getType(program, checker, filePath, typeName)
 
-    const parser = new TypeParser(checker)
+    const parser = new TypeParser(checker, {})
     const node = parser.parseToNode(type)
     console.log(node.print())
 

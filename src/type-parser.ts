@@ -1,6 +1,6 @@
 import ts from 'typescript'
 import { Node } from './nodes/node'
-import { getNumberTypeFromLetter, NumberNode } from './nodes/number'
+import { getNumberTypeFromLetter, NumberNode, NumberType } from './nodes/number'
 import { StringNode } from './nodes/string'
 import { BooleanNode } from './nodes/boolean'
 import { ArrayNode } from './nodes/array'
@@ -57,10 +57,16 @@ function deepFind<T>(
 }
 
 export class TypeParser {
+    defaultFloatBits = 64
+
     constructor(
         public checker: ts.TypeChecker,
-        public config: { noEnumOptimalization?: boolean } = {}
-    ) {}
+        public config: { noEnumOptimalization?: boolean; use32BitFloatsByDefault?: boolean } = {}
+    ) {
+        if (config.use32BitFloatsByDefault) {
+            this.defaultFloatBits = 32
+        }
+    }
 
     parseToNode(type: ts.Type, indent = 0, isOptional?: boolean): Node {
         const debug = false
@@ -141,13 +147,13 @@ export class TypeParser {
             if (debug) console.log(spacing, 'literal', type.value)
 
             if (typeof type.value == 'number') {
-                return new NumberNode(isOptional)
+                return new NumberNode(isOptional, this.defaultFloatBits, NumberType.Float)
             } else if (typeof type.value == 'string') {
                 return new StringNode(isOptional)
             } else throw new Error(`unimplemented literal, typeof type.value == ${typeof type.value}`)
         } else if (type.flags & ts.TypeFlags.Number) {
             if (debug) console.log(spacing, 'number')
-            return new NumberNode(isOptional)
+            return new NumberNode(isOptional, this.defaultFloatBits, NumberType.Float)
         } else if (type.flags & ts.TypeFlags.BooleanLiteral || type.flags & ts.TypeFlags.Boolean) {
             if (debug) console.log(spacing, 'boolean')
             return new BooleanNode(isOptional)
@@ -155,7 +161,7 @@ export class TypeParser {
             return new StringNode(isOptional)
         } else if (type.flags & ts.TypeFlags.Enum) {
             if (debug) console.log(spacing, 'enum')
-            return new NumberNode(isOptional)
+            return new NumberNode(isOptional, this.defaultFloatBits, NumberType.Float)
         } else if (this.checker.isArrayType(type)) {
             const indexType = type.getNumberIndexType()
             assert(indexType)

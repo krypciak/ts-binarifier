@@ -42,8 +42,8 @@ export class NumberNode extends Node {
 
     constructor(
         optional: boolean | undefined,
-        public bits: number = 64,
-        public type: NumberType = NumberType.Float
+        public bits: number,
+        public type: NumberType
     ) {
         super(optional)
         if (type == NumberType.Float) {
