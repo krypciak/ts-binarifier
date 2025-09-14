@@ -1,4 +1,4 @@
-import { gray } from "../colors"
+import { gray } from '../colors'
 
 export abstract class Node {
     static jsonVarName = 'json'
@@ -12,7 +12,7 @@ export abstract class Node {
     }
 
     protected optionalSuffix(ignoreOptional: boolean | undefined) {
-        return this.optional && ignoreOptional ? ' | ' + gray('undefined') : ''
+        return this.optional && !ignoreOptional ? ' | ' + gray('undefined') : ''
     }
 
     protected genEncodeWrapOptional(varName: string, strFunc: (indent: number) => string, indent: number) {

@@ -12,7 +12,9 @@ export class InterfaceNode extends Node {
         return (
             '{\n' +
             Object.entries(this.nodes)
-                .map(([k, v]) => Node.indent(indent+1) + k + ': ' + v.print(indent + 1))
+                .map(
+                    ([k, v]) => Node.indent(indent + 1) + k + (v.optional ? '?' : '') + ': ' + v.print(indent + 1, true)
+                )
                 .join(`,\n`) +
             '\n' +
             Node.indent(indent) +

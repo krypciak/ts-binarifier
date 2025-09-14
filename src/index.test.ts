@@ -56,9 +56,19 @@ test('encode decode data interface record any', async () => {
 })
 
 type Type8 = {
-    0: string
+    type: string
     [key: string]: string
 }
 test('encode decode data interface to record', async () => {
     await encodeDecodeDataTestMultiple<Type8>(path, 'Type8', [{ type: 'hi' }, { type: 'hi', abc: 'das' }])
+})
+
+type Type9 = any
+test('encode decode data any number', async () => {
+    await encodeDecodeDataTestMultiple<Type9>(path, 'Type9', [1, 'hi'])
+})
+
+type Type10 = [string, string | undefined]
+test('encode decode data array const optional', async () => {
+    await encodeDecodeDataTestMultiple<Type10>(path, 'Type10', [['das', 'hi'], ['lo', undefined]])
 })
