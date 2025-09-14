@@ -26,7 +26,7 @@ export class RecordNode extends Node {
             indent =>
                 `encoder.u8(Object.keys(${varName}).length)\n` +
                 Node.indent(indent) +
-                `for (const [k${indent}, v${indent}] of Object.entries(${varName})) {\n` +
+                `for (const [k${indent}, v${indent}] of Object.entries(${varName}) as unknown as [keyof typeof ${varName}, NonNullable<(typeof ${varName})[keyof typeof ${varName}]>][]) {\n` +
                 Node.indent(indent + 1) +
                 `${this.key.genEncode(`k${indent}`, indent + 1)}` +
                 '\n' +
@@ -38,6 +38,7 @@ export class RecordNode extends Node {
             indent
         )
     }
+
 
     genDecode(indent: number = 0): string {
         return this.genDecodeWrapOptional(
