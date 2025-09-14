@@ -2,9 +2,9 @@ import { expect } from 'bun:test'
 import fs from 'fs'
 import ts from 'typescript'
 import path from 'path'
-import { parseToNode } from './type-parser'
 import { codeGen, type EncoderDecoder } from './code-gen'
 import { createProgram, getType } from './type-extractor'
+import { TypeParser } from './type-parser'
 
 let tmpFileCounter = 0
 async function createTempFile(suffix: string): Promise<string> {
@@ -29,7 +29,8 @@ async function encodeDecodeDataSetup<T>(filePath: string, typeName: string): Pro
 
     const { type, fullPath } = getType(program, checker, filePath, typeName)
 
-    const node = parseToNode(type, checker)
+    const parser = new TypeParser(checker, { enumOptimalization: false })
+    const node = parser.parseToNode(type)
 
     const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
     await fs.promises.writeFile(outFile, code)

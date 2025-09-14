@@ -56,144 +56,154 @@ function deepFind<T>(
     return newObj
 }
 
-export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, isOptional?: boolean): Node {
-    const debug = false
-    const spacing = '  '.repeat(indent)
+export class TypeParser {
+    constructor(
+        public checker: ts.TypeChecker,
+        public config: { noEnumOptimalization?: boolean } = {}
+    ) {}
 
-    if (type.isUnion()) {
-        const isOptional =
-            type.types.findIndex(t => t.flags & ts.TypeFlags.Undefined || t.flags & ts.TypeFlags.Null) != -1
-        const truthyType = type.getNonNullableType()
+    parseToNode(type: ts.Type, indent = 0, isOptional?: boolean): Node {
+        const debug = false
+        const spacing = '  '.repeat(indent)
 
-        if (debug) console.log(spacing, 'union found, isOptional:', isOptional, checker.typeToString(type))
+        if (type.isUnion()) {
+            const isOptional =
+                type.types.findIndex(t => t.flags & ts.TypeFlags.Undefined || t.flags & ts.TypeFlags.Null) != -1
+            const truthyType = type.getNonNullableType()
 
-        if (truthyType.isUnion()) {
-            let truthyTypes = truthyType.types
-            {
-                /* merge enums */
-                const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
-                if (enumValueTypes.length > 0 && enumValueTypes.every(t => t.isNumberLiteral())) {
-                    const values = enumValueTypes.map(t => t.value)
-                    const min = Math.min(...values)
-                    const max = Math.max(...values)
-                    return NumberNode.optimalForRange(isOptional, min, max)
-                }
-            }
-            {
-                /* merge boolean literals */
-                let boolType = truthyTypes.find(t => t.flags & ts.TypeFlags.BooleanLiteral)
-                if (boolType) {
-                    truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.BooleanLiteral))
-                    truthyTypes.push(boolType)
-                }
-            }
-            {
-                /* merge number literals */
-                let numberType = truthyTypes.find(t => t.flags & ts.TypeFlags.NumberLiteral)
-                if (numberType) {
-                    truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.NumberLiteral))
-                    truthyTypes.push(numberType)
-                }
-            }
-            {
-                /* merge string literals */
-                let stringType = truthyTypes.find(t => t.flags & ts.TypeFlags.StringLiteral)
-                if (stringType) {
-                    truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.StringLiteral))
-                    truthyTypes.push(stringType)
-                }
-            }
+            if (debug) console.log(spacing, 'union found, isOptional:', isOptional, this.checker.typeToString(type))
 
-            if (truthyTypes.length == 1) {
-                const type1 = truthyTypes[0]
-                return parseToNode(type1, checker, indent, isOptional)
+            if (truthyType.isUnion()) {
+                let truthyTypes = truthyType.types
+                if (!this.config.noEnumOptimalization) {
+                    /* merge enums */
+                    const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
+                    if (enumValueTypes.length > 0 && enumValueTypes.every(t => t.isNumberLiteral())) {
+                        const values = enumValueTypes.map(t => t.value)
+                        const min = Math.min(...values)
+                        const max = Math.max(...values)
+                        return NumberNode.optimalForRange(isOptional, min, max)
+                    }
+                }
+                {
+                    /* merge boolean literals */
+                    let boolType = truthyTypes.find(t => t.flags & ts.TypeFlags.BooleanLiteral)
+                    if (boolType) {
+                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.BooleanLiteral))
+                        truthyTypes.push(boolType)
+                    }
+                }
+                {
+                    /* merge number literals */
+                    let numberType = truthyTypes.find(t => t.flags & ts.TypeFlags.NumberLiteral)
+                    if (numberType) {
+                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.NumberLiteral))
+                        truthyTypes.push(numberType)
+                    }
+                }
+                {
+                    /* merge string literals */
+                    let stringType = truthyTypes.find(t => t.flags & ts.TypeFlags.StringLiteral)
+                    if (stringType) {
+                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.StringLiteral))
+                        truthyTypes.push(stringType)
+                    }
+                }
+
+                if (truthyTypes.length == 1) {
+                    const type1 = truthyTypes[0]
+                    return this.parseToNode(type1, indent, isOptional)
+                } else {
+                    if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
+                    throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
+                }
             } else {
-                if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
-                throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
+                return this.parseToNode(truthyType, indent, isOptional)
             }
-        } else {
-            return parseToNode(truthyType, checker, indent, isOptional)
-        }
-    } else if (type.isIntersection()) {
-        let potentialNumberTypeRecord = type.types.find(
-            t => t.flags & ts.TypeFlags.Object && t.getProperties().length == 1
-        )
-        if (potentialNumberTypeRecord) {
-            const prop = potentialNumberTypeRecord.getProperties()[0]
-            const name = prop.name
-            const numberType = getNumberTypeFromLetter(name[0])
-            if (name.length >= 2 && name.length <= 4 && numberType) {
-                const bits = parseInt(name.substring(1))
-                if (!Number.isNaN(bits)) {
-                    return new NumberNode(isOptional, bits, numberType)
+        } else if (type.isIntersection()) {
+            let potentialNumberTypeRecord = type.types.find(
+                t => t.flags & ts.TypeFlags.Object && t.getProperties().length == 1
+            )
+            if (potentialNumberTypeRecord) {
+                const prop = potentialNumberTypeRecord.getProperties()[0]
+                const name = prop.name
+                const numberType = getNumberTypeFromLetter(name[0])
+                if (name.length >= 2 && name.length <= 4 && numberType) {
+                    const bits = parseInt(name.substring(1))
+                    if (!Number.isNaN(bits)) {
+                        return new NumberNode(isOptional, bits, numberType)
+                    }
                 }
             }
-        }
-        console.log(spacing, 'intersection')
-        throw new Error('unimplemented intersection')
-    } else if (type.isLiteral()) {
-        if (debug) console.log(spacing, 'literal', type.value)
+            console.log(spacing, 'intersection')
+            throw new Error('unimplemented intersection')
+        } else if (type.isLiteral()) {
+            if (debug) console.log(spacing, 'literal', type.value)
 
-        if (typeof type.value == 'number') {
+            if (typeof type.value == 'number') {
+                return new NumberNode(isOptional)
+            } else if (typeof type.value == 'string') {
+                return new StringNode(isOptional)
+            } else throw new Error(`unimplemented literal, typeof type.value == ${typeof type.value}`)
+        } else if (type.flags & ts.TypeFlags.Number) {
+            if (debug) console.log(spacing, 'number')
             return new NumberNode(isOptional)
-        } else if (typeof type.value == 'string') {
+        } else if (type.flags & ts.TypeFlags.BooleanLiteral || type.flags & ts.TypeFlags.Boolean) {
+            if (debug) console.log(spacing, 'boolean')
+            return new BooleanNode(isOptional)
+        } else if (type.flags & ts.TypeFlags.String) {
             return new StringNode(isOptional)
-        } else throw new Error(`unimplemented literal, typeof type.value == ${typeof type.value}`)
-    } else if (type.flags & ts.TypeFlags.Number) {
-        if (debug) console.log(spacing, 'number')
-        return new NumberNode(isOptional)
-    } else if (type.flags & ts.TypeFlags.BooleanLiteral || type.flags & ts.TypeFlags.Boolean) {
-        if (debug) console.log(spacing, 'boolean')
-        return new BooleanNode(isOptional)
-    } else if (type.flags & ts.TypeFlags.String) {
-        return new StringNode(isOptional)
-    } else if (type.flags & ts.TypeFlags.Enum) {
-        if (debug) console.log(spacing, 'enum')
-        return new NumberNode(isOptional)
-    } else if (checker.isArrayType(type)) {
-        const indexType = type.getNumberIndexType()
-        assert(indexType)
-        return new ArrayNode(isOptional, parseToNode(indexType, checker, indent + 1))
-    } else if (type.symbol?.flags == 2048 && ((type as any).constraintType || type.aliasTypeArguments)) {
-        if (debug) console.log(spacing, 'record')
-        const keyType: ts.Type = (type as any).constraintType ?? type.aliasTypeArguments?.[0]
-        assert(keyType)
-        const keyNode = parseToNode(keyType, checker, indent + 1)
+        } else if (type.flags & ts.TypeFlags.Enum) {
+            if (debug) console.log(spacing, 'enum')
+            return new NumberNode(isOptional)
+        } else if (this.checker.isArrayType(type)) {
+            const indexType = type.getNumberIndexType()
+            assert(indexType)
+            return new ArrayNode(isOptional, this.parseToNode(indexType, indent + 1))
+        } else if (type.symbol?.flags == 2048 && ((type as any).constraintType || type.aliasTypeArguments)) {
+            if (debug) console.log(spacing, 'record')
+            const keyType: ts.Type = (type as any).constraintType ?? type.aliasTypeArguments?.[0]
+            assert(keyType)
+            const keyNode = this.parseToNode(keyType, indent + 1)
 
-        const valueType = type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
-        assert(valueType)
-        const valueNode = parseToNode(valueType, checker, indent + 1)
+            const valueType = type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
+            assert(valueType)
+            const valueNode = this.parseToNode(valueType, indent + 1)
 
-        return new RecordNode(isOptional, keyNode, valueNode)
-    } else if (type.symbol) {
-        const name = type.symbol.name
-        if (debug)
-            console.log(
-                spacing,
-                `type: ${checker.typeToString(type)} (${name}) (flags: ${type.flags}, symbol flags: ${type.symbol.flags})`
+            return new RecordNode(isOptional, keyNode, valueNode)
+        } else if (type.symbol) {
+            const name = type.symbol.name
+            if (debug)
+                console.log(
+                    spacing,
+                    `type: ${this.checker.typeToString(type)} (${name}) (flags: ${type.flags}, symbol flags: ${type.symbol.flags})`
+                )
+            assert(name != 'Array')
+
+            const props = type.getProperties()
+            if (debug) console.log(spacing, 'properties:')
+            const nodes = Object.fromEntries(
+                props.map(p => {
+                    const propType = this.checker.getTypeOfSymbolAtLocation(
+                        p,
+                        p.valueDeclaration || p.declarations?.[0]!
+                    )
+                    return [p.name, this.parseToNode(propType, indent + 1)]
+                })
             )
-        assert(name != 'Array')
-
-        const props = type.getProperties()
-        if (debug) console.log(spacing, 'properties:')
-        const nodes = Object.fromEntries(
-            props.map(p => {
-                const propType = checker.getTypeOfSymbolAtLocation(p, p.valueDeclaration || p.declarations?.[0]!)
-                return [p.name, parseToNode(propType, checker, indent + 1)]
-            })
-        )
-        return new InterfaceNode(isOptional, nodes)
-    } else if (checker.isArrayLikeType(type)) {
-        const types: ts.Type[] = (type as any).resolvedTypeArguments
-        assert(types)
-        return new ArrayConstNode(
-            isOptional,
-            types.map(t => parseToNode(t, checker, indent + 1))
-        )
-    } else if (type.flags & ts.TypeFlags.NonPrimitive || type.flags & ts.TypeFlags.Unknown) {
-        return new JsonNode(isOptional)
-    } else {
-        throw new Error(`unimplemented: ${checker.typeToString(type)}, flags: ${type.flags}`)
+            return new InterfaceNode(isOptional, nodes)
+        } else if (this.checker.isArrayLikeType(type)) {
+            const types: ts.Type[] = (type as any).resolvedTypeArguments
+            assert(types)
+            return new ArrayConstNode(
+                isOptional,
+                types.map(t => this.parseToNode(t, indent + 1))
+            )
+        } else if (type.flags & ts.TypeFlags.NonPrimitive || type.flags & ts.TypeFlags.Unknown) {
+            return new JsonNode(isOptional)
+        } else {
+            throw new Error(`unimplemented: ${this.checker.typeToString(type)}, flags: ${type.flags}`)
+        }
     }
 }
 

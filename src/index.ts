@@ -1,8 +1,8 @@
 import fs from 'fs'
-import { parseToNode } from './type-parser'
 import { codeGen } from './code-gen'
 import { createProgram, getType } from './type-extractor'
 import './colors'
+import { TypeParser } from './type-parser'
 
 async function run() {
     const projectRoot = '/home/krypek/home/Programming/crosscode/instances/cc-server/assets/mods/cc-multibakery'
@@ -20,7 +20,8 @@ async function run() {
 
     const { type, fullPath } = getType(program, checker, filePath, typeName)
 
-    const node = parseToNode(type, checker)
+    const parser = new TypeParser(checker)
+    const node = parser.parseToNode(type)
     console.log(node.print())
 
     // const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
