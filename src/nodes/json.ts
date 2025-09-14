@@ -1,3 +1,4 @@
+import { magenta } from '../colors'
 import { Node } from './node'
 
 export class JsonNode extends Node {
@@ -6,7 +7,7 @@ export class JsonNode extends Node {
     }
 
     print(_indent: number = 0, ignoreOptional?: boolean) {
-        return 'any'.magenta + this.optionalSuffix(ignoreOptional)
+        return magenta('any') + this.optionalSuffix(ignoreOptional)
     }
 
     genEncode(varName: string, indent: number = 0): string {

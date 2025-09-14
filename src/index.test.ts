@@ -1,6 +1,6 @@
 import { test } from 'bun:test'
 import { encodeDecodeDataTestMultiple } from './test-util'
-import type { f64, u8 } from './nodes/number-types'
+import type { f64, u8 } from './nodes/number-aliases'
 
 type Type1 = number
 test('encode decode data 1', async () => {

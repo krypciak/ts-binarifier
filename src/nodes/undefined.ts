@@ -1,3 +1,4 @@
+import { gray } from '../colors'
 import { Node } from './node'
 
 export class UndefinedNode extends Node {
@@ -6,7 +7,7 @@ export class UndefinedNode extends Node {
     }
 
     print() {
-        return 'undefined'.gray
+        return gray('undefined')
     }
 
     genEncode(_varName: string): string {

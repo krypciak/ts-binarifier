@@ -1,3 +1,4 @@
+import { gray } from '../colors'
 import { Node } from './node'
 
 export class NullNode extends Node {
@@ -6,7 +7,7 @@ export class NullNode extends Node {
     }
 
     print(_indent: number = 0, ignoreOptional?: boolean) {
-        return 'null'.gray + this.optionalSuffix(ignoreOptional)
+        return gray('null') + this.optionalSuffix(ignoreOptional)
     }
 
     genEncode(_varName: string): string {

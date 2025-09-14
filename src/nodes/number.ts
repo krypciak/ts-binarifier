@@ -1,4 +1,5 @@
 import { assert } from '../assert'
+import { yellow } from '../colors'
 import { Node } from './node'
 
 export enum NumberType {
@@ -28,7 +29,7 @@ export class NumberNode extends Node {
     }
 
     print(_indent: number = 0, ignoreOptional?: boolean) {
-        return (getLetterFromNumberType(this.type) + this.bits).yellow + this.optionalSuffix(ignoreOptional)
+        return yellow(getLetterFromNumberType(this.type) + this.bits) + this.optionalSuffix(ignoreOptional)
     }
 
     genEncode(varName: string, indent: number = 0): string {

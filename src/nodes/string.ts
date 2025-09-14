@@ -1,3 +1,4 @@
+import { green } from '../colors'
 import { Node } from './node'
 
 export class StringNode extends Node {
@@ -6,7 +7,7 @@ export class StringNode extends Node {
     }
 
     print(_indent: number = 0, ignoreOptional?: boolean) {
-        return 'string'.green + this.optionalSuffix(ignoreOptional)
+        return green('string') + this.optionalSuffix(ignoreOptional)
     }
 
     genEncode(varName: string, indent: number = 0): string {
