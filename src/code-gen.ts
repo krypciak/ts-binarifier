@@ -23,6 +23,11 @@ export function codeGen(
     return code
 }
 
+export interface EncoderDecoder<T = unknown> {
+    encode(data: T): Uint8Array
+    decode(buf: Uint8Array): T
+}
+
 function genParsingClass(
     type: Node,
     className: string,

@@ -3,7 +3,7 @@ import fs from 'fs'
 import ts from 'typescript'
 import path from 'path'
 import { parseToNode } from './type-parser'
-import { codeGen } from './code-gen'
+import { codeGen, type EncoderDecoder } from './code-gen'
 import { createProgram, getType } from './type-extractor'
 
 let tmpFileCounter = 0
@@ -14,8 +14,6 @@ async function createTempFile(suffix: string): Promise<string> {
     return path
 }
 
-type Gen = any
-
 let program: ts.Program
 let checker: ts.TypeChecker
 async function setupProgram() {
@@ -24,7 +22,7 @@ async function setupProgram() {
     ;({ program, checker } = await createProgram(projectRoot))
 }
 
-async function encodeDecodeDataSetup(filePath: string, typeName: string): Promise<Gen> {
+async function encodeDecodeDataSetup<T>(filePath: string, typeName: string): Promise<EncoderDecoder<T>> {
     await setupProgram()
 
     const outFile = await createTempFile('.ts')
@@ -37,21 +35,20 @@ async function encodeDecodeDataSetup(filePath: string, typeName: string): Promis
     await fs.promises.writeFile(outFile, code)
 
     const genModule = await import(path.relative(new URL('.', import.meta.url).pathname, outFile))
-    const Gen: Gen = genModule.Gen
-    return Gen
+    return genModule.Gen as EncoderDecoder<T>
 }
 
-function encodeDecodeDataTest(Gen: Gen, data: any) {
-    const buf = Gen.encode(data)
+function encodeDecodeDataTest<T>(EncoderDecoder: EncoderDecoder<T>, data: T) {
+    const buf = EncoderDecoder.encode(data)
 
-    const decoded = Gen.decode(buf)
+    const decoded = EncoderDecoder.decode(buf)
 
     expect(decoded).toEqual(data)
 }
 
 export async function encodeDecodeDataTestMultiple<T>(filePath: string, typeName: string, dataArray: T[]) {
-    const Gen = await encodeDecodeDataSetup(filePath, typeName)
+    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName)
     for (const data of dataArray) {
-        encodeDecodeDataTest(Gen, data)
+        encodeDecodeDataTest(EncoderDecoder, data)
     }
 }
