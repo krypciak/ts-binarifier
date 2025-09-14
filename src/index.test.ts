@@ -44,8 +44,21 @@ type Type6 = {
     type: string
 } & nodeAny
 test('encode decode data nodeAny', async () => {
-    await encodeDecodeDataTestMultiple<Type6 & any>(path, 'Type6', [
-        { type: 'hi' },
-        { type: 'hi', abc: 3214 }
-    ])
+    await encodeDecodeDataTestMultiple<Type6 & any>(path, 'Type6', [{ type: 'hi' }, { type: 'hi', abc: 3214 }])
+})
+
+type Type7 = {
+    type: string
+    [key: string]: any
+}
+test('encode decode data interface record any', async () => {
+    await encodeDecodeDataTestMultiple<Type7>(path, 'Type7', [{ type: 'hi' }, { type: 'hi', abc: 3214 }])
+})
+
+type Type8 = {
+    0: string
+    [key: string]: string
+}
+test('encode decode data interface to record', async () => {
+    await encodeDecodeDataTestMultiple<Type8>(path, 'Type8', [{ type: 'hi' }, { type: 'hi', abc: 'das' }])
 })

@@ -200,14 +200,34 @@ export class TypeParser {
             const valueNode = this.parseToNode(valueType, indent + 1)
 
             return new RecordNode(isOptional, keyNode, valueNode)
+        } else if (type.symbol && type.symbol.members?.keys().find(m => m.toString() == '__index')) {
+            const valueTypes: Node[] = type.symbol.members
+                .entries()
+                .flatMap(([k, s]) => {
+                    if (k != '__index') return [this.parseToNode(this.checker.getTypeOfSymbol(s), indent + 1)]
+                    if (!s.declarations) return []
+                    return s.declarations.map(d => {
+                        assert(ts.isIndexSignatureDeclaration(d))
+
+                        return this.parseToNode(this.checker.getTypeFromTypeNode(d.type))
+                    })
+                })
+                .toArray()
+
+            const isAllTheSame = valueTypes.every(
+                t => Object.getPrototypeOf(t) === Object.getPrototypeOf(valueTypes[0])
+            )
+            if (isAllTheSame) {
+                return new RecordNode(isOptional, new StringNode(false), valueTypes[0])
+            } else {
+                return new JsonNode(isOptional)
+            }
         } else if (type.symbol) {
-            const name = type.symbol.name
             if (debug)
                 console.log(
                     spacing,
-                    `type: ${this.checker.typeToString(type)} (${name}) (flags: ${type.flags}, symbol flags: ${type.symbol.flags})`
+                    `type: ${this.checker.typeToString(type)} (${type.symbol.name}) (flags: ${type.flags}, symbol flags: ${type.symbol.flags})`
                 )
-            assert(name != 'Array')
 
             const props = type.getProperties()
             if (debug) console.log(spacing, 'properties:')
@@ -221,7 +241,7 @@ export class TypeParser {
                 })
             )
             return new InterfaceNode(isOptional, nodes)
-        } else if (this.checker.isArrayLikeType(type)) {
+        } else if (this.checker.isArrayLikeType(type) && (type as any).resolvedTypeArguments) {
             const types: ts.Type[] = (type as any).resolvedTypeArguments
             assert(types)
             return new ArrayConstNode(
@@ -229,6 +249,8 @@ export class TypeParser {
                 types.map(t => this.parseToNode(t, indent + 1))
             )
         } else if (type.flags & ts.TypeFlags.NonPrimitive || type.flags & ts.TypeFlags.Unknown) {
+            return new JsonNode(isOptional)
+        } else if (this.checker.typeToString(type) == 'any') {
             return new JsonNode(isOptional)
         } else {
             throw new Error(`unimplemented: ${this.checker.typeToString(type)}, flags: ${type.flags}`)
@@ -296,7 +318,7 @@ function stripFunctions(obj: any, seen = new WeakMap()) {
         const result: any = {}
         seen.set(obj, result)
         for (const [k, v] of Object.entries(obj)) {
-            if (typeof v !== 'function' && k != 'checker' && v) {
+            if (typeof v !== 'function' && k != 'checker' && k != 'parent' && v) {
                 result[k] = stripFunctions(v, seen)
             }
         }
