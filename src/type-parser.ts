@@ -70,6 +70,16 @@ export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, 
         if (truthyType.isUnion()) {
             let truthyTypes = truthyType.types
             {
+                /* merge enums */
+                const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
+                if (enumValueTypes.length > 0 && enumValueTypes.every(t => t.isNumberLiteral())) {
+                    const values = enumValueTypes.map(t => t.value)
+                    const min = Math.min(...values)
+                    const max = Math.max(...values)
+                    return NumberNode.optimalForRange(isOptional, min, max)
+                }
+            }
+            {
                 /* merge boolean literals */
                 let boolType = truthyTypes.find(t => t.flags & ts.TypeFlags.BooleanLiteral)
                 if (boolType) {
@@ -83,16 +93,6 @@ export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, 
                 if (numberType) {
                     truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.NumberLiteral))
                     truthyTypes.push(numberType)
-                }
-            }
-            {
-                /* merge enums */
-                let enumType = truthyTypes.find(t => t.flags & ts.TypeFlags.EnumLiteral || t.flags & ts.TypeFlags.Enum)
-                if (enumType) {
-                    truthyTypes = truthyTypes.filter(
-                        t => !(t.flags & ts.TypeFlags.EnumLiteral || t.flags & ts.TypeFlags.Enum)
-                    )
-                    truthyTypes.push(enumType)
                 }
             }
             {
@@ -197,8 +197,7 @@ export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, 
     }
 }
 
-export function printType(type: ts.Type | undefined, checker: ts.TypeChecker, indent = 0) {
-    if (indent == 0) console.log('\n')
+export function printType(type: ts.Type | undefined, checker: ts.TypeChecker = (type as any).checker, indent = 0) {
     const spacing = '  '.repeat(indent)
 
     if (!type) return console.log(spacing + 'undefined type')
@@ -258,7 +257,7 @@ function stripFunctions(obj: any, seen = new WeakMap()) {
         const result: any = {}
         seen.set(obj, result)
         for (const [k, v] of Object.entries(obj)) {
-            if (typeof v !== 'function' && k != 'checker') {
+            if (typeof v !== 'function' && k != 'checker' && v) {
                 result[k] = stripFunctions(v, seen)
             }
         }

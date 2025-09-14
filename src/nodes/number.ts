@@ -17,6 +17,29 @@ export function getNumberTypeFromLetter(c: string): NumberType | undefined {
 }
 
 export class NumberNode extends Node {
+    static optimalForRange(optional: boolean | undefined, min: number, max: number): NumberNode {
+        if (Math.floor(min) != min || Math.floor(max) != max) {
+            return new NumberNode(optional, 64, NumberType.Float)
+        }
+
+        const signed = min < 0
+        let bits: number = 0
+        while (max > 0) {
+            bits++
+            max >>= 1
+        }
+        if (signed) {
+            let bits1 = 0
+            while (min < -1) {
+                bits1++
+                min >>= 1
+            }
+            bits = Math.max(bits, bits1)
+            bits++
+        }
+        return new NumberNode(optional, Math.max(1, bits), signed ? NumberType.Signed : NumberType.Unsigned)
+    }
+
     constructor(
         optional: boolean | undefined,
         public bits: number = 64,
