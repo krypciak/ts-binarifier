@@ -4,14 +4,14 @@ export class Decoder {
 
     constructor(private buf: Uint8Array) {}
 
-    u1(): boolean {
+    boolean(): boolean {
         const v = this.buf[this.bufI] & (1 << this.bufOffset)
         this.bufOffset++
         if (this.bufOffset >= 8) {
             this.bufOffset = 0
             this.bufI++
         }
-        // console.log('decode u1: ', v != 0)
+        // console.log('decode boolean: ', v != 0)
         return v != 0
     }
 
@@ -69,9 +69,13 @@ export class Decoder {
         // console.log('decode u8:', v)
         return v
     }
-
     u16() {
         const v = this.u(16)
+        // console.log('decode u16:', v)
+        return v
+    }
+    u32() {
+        const v = this.u(32)
         // console.log('decode u16:', v)
         return v
     }

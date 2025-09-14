@@ -26,8 +26,8 @@ export class Encoder {
         }
     }
 
-    u1(v: number | boolean) {
-        // console.log('encode u1:', v)
+    boolean(v: number | boolean) {
+        // console.log('encode boolean:', v)
         this.pushData([v ? 1 : 0], 1)
     }
     u8(v: number, length: number = 8) {
@@ -36,11 +36,11 @@ export class Encoder {
     }
     u16(v: number, length: number = 16) {
         // console.log('encode u16:', v, 'len:', length)
-        this.pushData([v & 255, (v & 65280) >> 8], length)
+        this.pushData([v & 0xff, (v >>> 8) & 0xff], length)
     }
     u32(v: number, length: number = 32) {
         // console.log('encode u32:', v, 'len:', length)
-        this.pushData([v & 255, (v & 65280) >> 8], length)
+        this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >> 24) & 0xff], length)
     }
 
     private doubleToIEEE32(f: number) {

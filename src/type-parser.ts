@@ -1,6 +1,6 @@
 import ts from 'typescript'
 import { Node } from './nodes/node'
-import { NumberNode } from './nodes/number'
+import { getNumberTypeFromLetter, NumberNode } from './nodes/number'
 import { StringNode } from './nodes/string'
 import { BooleanNode } from './nodes/boolean'
 import { ArrayNode } from './nodes/array'
@@ -9,6 +9,52 @@ import { InterfaceNode } from './nodes/interface'
 import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
+
+function deepFind<T>(
+    obj: T,
+    lookingFor: any | ((obj: any) => boolean),
+    path: string = '',
+    ignoreSet: Set<string> = new Set(),
+    seen = new WeakMap()
+): T {
+    if (Array.isArray(obj)) {
+        const arr = obj.map((e, i) => deepFind(e, lookingFor, `${path}[${i}]`, ignoreSet, seen)) as T
+        seen.set(obj, arr)
+        return arr
+    }
+    if (obj === null || typeof obj !== 'object' || typeof obj === 'function') {
+        return obj
+    }
+
+    /* Handle circular references */
+    if (seen.has(obj)) {
+        return seen.get(obj)
+    }
+
+    /* Create a new object with the same prototype as the original */
+    const newObj: T = Object.create(Object.getPrototypeOf(obj))
+
+    /* Add the new object to the seen map to handle circular references */
+    seen.set(obj, newObj)
+
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let badKey: boolean = false
+            for (const ignoreKey of ignoreSet) {
+                if (key === ignoreKey) {
+                    badKey = true
+                    break
+                }
+            }
+            newObj[key] = badKey ? obj[key] : deepFind(obj[key], lookingFor, `${path}.${key}`, ignoreSet, seen)
+            const v: any = obj[key]
+            if (v === lookingFor || (typeof lookingFor === 'function' && lookingFor(v))) {
+                console.log(`%c${path}.${key}`, 'color: lime;', v)
+            }
+        }
+    }
+    return newObj
+}
 
 export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, isOptional?: boolean): Node {
     const debug = false
@@ -69,6 +115,20 @@ export function parseToNode(type: ts.Type, checker: ts.TypeChecker, indent = 0, 
             return parseToNode(truthyType, checker, indent, isOptional)
         }
     } else if (type.isIntersection()) {
+        let potentialNumberTypeRecord = type.types.find(
+            t => t.flags & ts.TypeFlags.Object && t.getProperties().length == 1
+        )
+        if (potentialNumberTypeRecord) {
+            const prop = potentialNumberTypeRecord.getProperties()[0]
+            const name = prop.name
+            const numberType = getNumberTypeFromLetter(name[0])
+            if (name.length >= 2 && name.length <= 4 && numberType) {
+                const bits = parseInt(name.substring(1))
+                if (!Number.isNaN(bits)) {
+                    return new NumberNode(isOptional, bits, numberType)
+                }
+            }
+        }
         console.log(spacing, 'intersection')
         throw new Error('unimplemented intersection')
     } else if (type.isLiteral()) {
@@ -180,4 +240,30 @@ export function printType(type: ts.Type | undefined, checker: ts.TypeChecker, in
 
     // Fallback for anonymous or intrinsic types
     console.log(spacing + `Type: ${checker.typeToString(type)}`, '(flags:', type.flags, ')')
+}
+
+function stripFunctions(obj: any, seen = new WeakMap()) {
+    if (Array.isArray(obj)) {
+        if (seen.has(obj)) return seen.get(obj)
+        const result: any[] = []
+        seen.set(obj, result)
+        obj.forEach((item, i) => {
+            result[i] = stripFunctions(item, seen)
+        })
+        return result
+    }
+
+    if (obj && typeof obj === 'object') {
+        if (seen.has(obj)) return seen.get(obj)
+        const result: any = {}
+        seen.set(obj, result)
+        for (const [k, v] of Object.entries(obj)) {
+            if (typeof v !== 'function' && k != 'checker') {
+                result[k] = stripFunctions(v, seen)
+            }
+        }
+        return result
+    }
+
+    return obj // primitive or function (functions excluded earlier)
 }

@@ -10,10 +10,10 @@ export class BooleanNode extends Node {
     }
 
     genEncode(varName: string, indent: number = 0): string {
-        return this.genEncodeWrapOptional(varName, () => `encoder.u1(${varName})`, indent)
+        return this.genEncodeWrapOptional(varName, () => `encoder.boolean(${varName})`, indent)
     }
 
     genDecode(): string {
-        return `${this.genDecodeWrapOptional(`decoder.u1()`)}`
+        return `${this.genDecodeWrapOptional(`decoder.boolean()`)}`
     }
 }

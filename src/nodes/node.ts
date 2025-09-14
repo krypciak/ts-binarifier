@@ -18,10 +18,10 @@ export abstract class Node {
             indent++
             const str = strFunc(indent)
             return (
-                `if (${varName} === undefined || ${varName} === null) encoder.u1(false); else {` +
+                `if (${varName} === undefined || ${varName} === null) encoder.boolean(false); else {` +
                 '\n' +
                 Node.indent(indent) +
-                `encoder.u1(true)\n` +
+                `encoder.boolean(true)\n` +
                 Node.indent(indent) +
                 str +
                 '\n' +
@@ -36,7 +36,7 @@ export abstract class Node {
 
     protected genDecodeWrapOptional(str: string) {
         if (this.optional) {
-            return `decoder.u1() ? ${str} : undefined`
+            return `decoder.boolean() ? ${str} : undefined`
         } else {
             return str
         }

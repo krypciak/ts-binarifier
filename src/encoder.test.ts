@@ -3,10 +3,10 @@ import { Encoder } from './encoder'
 
 test('encoder boolean', () => {
     const encoder = new Encoder()
-    encoder.u1(1)
-    encoder.u1(0)
-    encoder.u1(0)
-    encoder.u1(1)
+    encoder.boolean(1)
+    encoder.boolean(0)
+    encoder.boolean(0)
+    encoder.boolean(1)
     expect(encoder.bufOffset).toBe(4)
     expect(encoder.buf[0]).toBe(9)
 })
@@ -20,7 +20,7 @@ test('encoder u8', () => {
 
 test('encoder u8 boolean', () => {
     const encoder = new Encoder()
-    encoder.u1(0)
+    encoder.boolean(0)
     encoder.u8(5)
     expect(encoder.bufOffset).toBe(1)
     expect(encoder.buf[0]).toBe(10)

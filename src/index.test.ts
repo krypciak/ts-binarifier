@@ -1,5 +1,6 @@
 import { test } from 'bun:test'
 import { encodeDecodeDataTestMultiple } from './test-util'
+import type { f64, u8 } from './nodes/number-types'
 
 type Type1 = number
 test('encode decode data 1', async () => {
@@ -30,3 +31,14 @@ test('encode decode data 3', async () => {
         { num: 4832.849, abc: 'text' },
     ])
 })
+
+type Type4 = u8
+// test('encode decode data 4', async () => {
+//     await encodeDecodeDataTestMultiple<Type3>(new URL('', import.meta.url).pathname, 'Type3', [
+//         //
+//         { abc: 'hi' },
+//         { num: 3 },
+//         {},
+//         { num: 4832.849, abc: 'text' },
+//     ])
+// })
