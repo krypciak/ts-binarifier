@@ -127,17 +127,40 @@ export class TypeParser {
                 return this.parseToNode(truthyType, indent, isOptional)
             }
         } else if (type.isIntersection()) {
-            let potentialNumberTypeRecord = type.types.find(
-                t => t.flags & ts.TypeFlags.Object && t.getProperties().length == 1
-            )
-            if (potentialNumberTypeRecord) {
-                const prop = potentialNumberTypeRecord.getProperties()[0]
+            const potentialTypeRecord = type.types.filter(t => {
+                if (!(t.flags & ts.TypeFlags.Object)) return false
+                const props = t.getProperties()
+                if (props.length != 1) return false
+                const prop = props[0]
+                const value = prop.valueDeclaration
+                if (
+                    !value ||
+                    !ts.isPropertySignature(value) ||
+                    !value.questionToken ||
+                    !value.type ||
+                    value.type.kind != ts.SyntaxKind.NeverKeyword
+                )
+                    return false
+
+                return true
+            })
+            if (potentialTypeRecord.length > 0) {
+                assert(potentialTypeRecord.length == 1)
+                const prop = potentialTypeRecord[0].getProperties()[0]
                 const name = prop.name
-                const numberType = getNumberTypeFromLetter(name[0])
-                if (name.length >= 2 && name.length <= 4 && numberType) {
-                    const bits = parseInt(name.substring(1))
-                    if (!Number.isNaN(bits)) {
-                        return new NumberNode(isOptional, bits, numberType)
+
+                {
+                    const numberType = getNumberTypeFromLetter(name[0])
+                    if (name.length >= 2 && name.length <= 4 && numberType) {
+                        const bits = parseInt(name.substring(1))
+                        if (!Number.isNaN(bits)) {
+                            return new NumberNode(isOptional, bits, numberType)
+                        }
+                    }
+                }
+                {
+                    if (name == 'any') {
+                        return new JsonNode(isOptional)
                     }
                 }
             }

@@ -64,3 +64,5 @@ export type i32 = number & { i32?: never }
 
 export type f32 = number & { f32?: never }
 export type f64 = number & { f64?: never }
+
+export type nodeAny<T = {}> = T & { any?: never }

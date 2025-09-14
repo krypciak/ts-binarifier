@@ -29,7 +29,7 @@ async function encodeDecodeDataSetup<T>(filePath: string, typeName: string): Pro
 
     const { type, fullPath } = getType(program, checker, filePath, typeName)
 
-    const parser = new TypeParser(checker, { enumOptimalization: false })
+    const parser = new TypeParser(checker, {})
     const node = parser.parseToNode(type)
 
     const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
