@@ -1,6 +1,6 @@
 import ts from 'typescript'
 import { Node } from './nodes/node'
-import { getNumberTypeFromLetter, NumberNode, NumberType } from './nodes/number'
+import { NumberNode, NumberType } from './nodes/number'
 import { StringNode } from './nodes/string'
 import { BooleanNode } from './nodes/boolean'
 import { ArrayNode } from './nodes/array'
@@ -9,57 +9,46 @@ import { InterfaceNode } from './nodes/interface'
 import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
-
-function deepFind<T>(
-    obj: T,
-    lookingFor: any | ((obj: any) => boolean),
-    path: string = '',
-    ignoreSet: Set<string> = new Set(),
-    seen = new WeakMap()
-): T {
-    if (Array.isArray(obj)) {
-        const arr = obj.map((e, i) => deepFind(e, lookingFor, `${path}[${i}]`, ignoreSet, seen)) as T
-        seen.set(obj, arr)
-        return arr
-    }
-    if (obj === null || typeof obj !== 'object' || typeof obj === 'function') {
-        return obj
-    }
-
-    /* Handle circular references */
-    if (seen.has(obj)) {
-        return seen.get(obj)
-    }
-
-    /* Create a new object with the same prototype as the original */
-    const newObj: T = Object.create(Object.getPrototypeOf(obj))
-
-    /* Add the new object to the seen map to handle circular references */
-    seen.set(obj, newObj)
-
-    for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            let badKey: boolean = false
-            for (const ignoreKey of ignoreSet) {
-                if (key === ignoreKey) {
-                    badKey = true
-                    break
-                }
-            }
-            newObj[key] = badKey ? obj[key] : deepFind(obj[key], lookingFor, `${path}.${key}`, ignoreSet, seen)
-            const v: any = obj[key]
-            if (v === lookingFor || (typeof lookingFor === 'function' && lookingFor(v))) {
-                console.log(`%c${path}.${key}`, 'color: lime;', v)
-            }
-        }
-    }
-    return newObj
-}
+import { customStuffNode } from './custom-handler'
 
 export interface TypeParserConfig {
     noEnumOptimalization?: boolean
     use32BitFloatsByDefault?: boolean
     enumTypeOverride?: Record<string, string>
+}
+
+function getSpecialLabel(types: ts.Type[]) {
+    const specialTypes = types.filter(t => {
+        if (!(t.flags & ts.TypeFlags.Object)) return false
+        const props = t.getProperties()
+        if (props.length != 1) return false
+        const prop = props[0]
+        const value = prop.valueDeclaration
+        if (
+            !value ||
+            !ts.isPropertySignature(value) ||
+            !value.questionToken ||
+            !value.type ||
+            value.type.kind != ts.SyntaxKind.NeverKeyword
+        )
+            return false
+
+        return true
+    })
+    if (specialTypes.length == 0) return {}
+
+    assert(specialTypes.length == 1)
+    const prop = specialTypes[0].getProperties()[0]
+    const specialLabel = prop.name
+    return { specialLabel, specialType: specialTypes[0] }
+}
+
+export function getRecordKeyType(type: ts.Type): ts.Type | undefined {
+    return (type as any).constraintType ?? type.aliasTypeArguments?.[0]
+}
+
+export function getRecordValueType(type: ts.Type): ts.Type | undefined {
+    return type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
 }
 
 export class TypeParser {
@@ -75,7 +64,7 @@ export class TypeParser {
     }
 
     parseToNode(type: ts.Type, indent = 0, isOptional?: boolean): Node {
-        const debug = false
+        const debug = true
         const spacing = '  '.repeat(indent)
 
         if (type.isUnion()) {
@@ -150,33 +139,22 @@ export class TypeParser {
                 return this.parseToNode(truthyType, indent, isOptional)
             }
         } else if (type.isIntersection()) {
-            const potentialTypeRecord = type.types.filter(t => {
-                if (!(t.flags & ts.TypeFlags.Object)) return false
-                const props = t.getProperties()
-                if (props.length != 1) return false
-                const prop = props[0]
-                const value = prop.valueDeclaration
-                if (
-                    !value ||
-                    !ts.isPropertySignature(value) ||
-                    !value.questionToken ||
-                    !value.type ||
-                    value.type.kind != ts.SyntaxKind.NeverKeyword
-                )
-                    return false
-
-                return true
-            })
-            if (potentialTypeRecord.length > 0) {
-                assert(potentialTypeRecord.length == 1)
-                const prop = potentialTypeRecord[0].getProperties()[0]
-                const name = prop.name
-
-                const numberNode = NumberNode.fromName(isOptional, name)
+            const { specialLabel, specialType } = getSpecialLabel(type.types)
+            if (specialLabel) {
+                const numberNode = NumberNode.fromName(isOptional, specialLabel)
                 if (numberNode) return numberNode
 
-                if (name == 'any') {
+                if (specialLabel == 'any') {
                     return new JsonNode(isOptional)
+                }
+
+                if (specialLabel == 'customStuff') {
+                    return customStuffNode(
+                        isOptional,
+                        type.types.filter(t => t != specialType),
+                        this,
+                        indent
+                    )
                 }
             }
             console.log(spacing, 'intersection')
@@ -204,13 +182,13 @@ export class TypeParser {
             const indexType = type.getNumberIndexType()
             assert(indexType)
             return new ArrayNode(isOptional, this.parseToNode(indexType, indent + 1))
-        } else if (type.symbol?.flags == 2048 && ((type as any).constraintType || type.aliasTypeArguments)) {
+        } else if (type.symbol?.flags == 2048 && getRecordKeyType(type)) {
             if (debug) console.log(spacing, 'record')
-            const keyType: ts.Type = (type as any).constraintType ?? type.aliasTypeArguments?.[0]
+            const keyType = getRecordKeyType(type)
             assert(keyType)
             const keyNode = this.parseToNode(keyType, indent + 1)
 
-            const valueType = type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
+            const valueType = getRecordValueType(type)
             assert(valueType)
             const valueNode = this.parseToNode(valueType, indent + 1)
 
@@ -341,4 +319,56 @@ function stripFunctions(obj: any, seen = new WeakMap()) {
     }
 
     return obj // primitive or function (functions excluded earlier)
+}
+
+function deepFind<T>(
+    obj: T,
+    lookingFor: any | ((obj: any) => boolean),
+    path: string = '',
+    ignoreSet: Set<string> = new Set(),
+    seen = new WeakMap()
+): T {
+    if (Array.isArray(obj)) {
+        const arr = obj.map((e, i) => deepFind(e, lookingFor, `${path}[${i}]`, ignoreSet, seen)) as T
+        seen.set(obj, arr)
+        return arr
+    }
+    if (obj === null || typeof obj !== 'object' || typeof obj === 'function') {
+        return obj
+    }
+
+    /* Handle circular references */
+    if (seen.has(obj)) {
+        return seen.get(obj)
+    }
+
+    /* Create a new object with the same prototype as the original */
+    const newObj: T = Object.create(Object.getPrototypeOf(obj))
+
+    /* Add the new object to the seen map to handle circular references */
+    seen.set(obj, newObj)
+
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let badKey: boolean = false
+            for (const ignoreKey of ignoreSet) {
+                if (key === ignoreKey) {
+                    badKey = true
+                    break
+                }
+            }
+            newObj[key] = badKey ? obj[key] : deepFind(obj[key], lookingFor, `${path}.${key}`, ignoreSet, seen)
+            const v: any = obj[key]
+            if (v === lookingFor || (typeof lookingFor === 'function' && lookingFor(v))) {
+                console.log(`%c${path}.${key}`, 'color: lime;', v)
+            }
+        }
+    }
+    return newObj
+}
+
+const a = false
+if (a) {
+    stripFunctions(1)
+    deepFind({}, '')
 }

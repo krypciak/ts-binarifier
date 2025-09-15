@@ -64,7 +64,7 @@ export class NumberNode extends Node {
     print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
         return (
             yellow(getLetterFromNumberType(this.type) + this.bits, noColor) +
-            this.optionalSuffix(noColor, ignoreOptional)
+            this.optionalSuffix(ignoreOptional, noColor)
         )
     }
 

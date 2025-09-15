@@ -33,28 +33,35 @@ export class Encoder {
     }
 
     u8(v: number, length: number = 8) {
+        if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         // console.log('encode u8:', v, 'len:', length)
         this.pushData([v & 0xff], length)
     }
     u16(v: number, length: number = 16) {
+        if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         // console.log('encode u16:', v, 'len:', length)
         this.pushData([v & 0xff, (v >>> 8) & 0xff], length)
     }
     u24(v: number, length: number = 24) {
+        if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         // console.log('encode u32:', v, 'len:', length)
         this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff], length)
     }
     u32(v: number, length: number = 32) {
+        if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff], length)
     }
 
     i8(v: number, length: number = 8) {
+        if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.u8(v, length)
     }
     i16(v: number, length: number = 32) {
+        if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.i16(v, length)
     }
     i32(v: number, length: number = 32) {
+        if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.i32(v, length)
     }
 

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { codeGen } from './code-gen'
-import { createProgram, getType } from './type-extractor'
+import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import './colors'
 import { TypeParser } from './type-parser'
 
@@ -18,14 +18,15 @@ async function run() {
 
     const { program, checker } = await createProgram(projectRoot)
 
-    const { type, fullPath } = getType(program, checker, filePath, typeName)
+    const file = getFile(program, filePath)
+    const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName)
 
     const parser = new TypeParser(checker, {})
     const node = parser.parseToNode(type)
     console.log(node.print())
 
-    // const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
-    // await fs.promises.writeFile(outFile, code)
+    const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
+    await fs.promises.writeFile(outFile, code)
 }
 
 await run()

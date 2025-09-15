@@ -9,7 +9,7 @@ export class ArrayConstNode extends Node {
     }
 
     print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
-        return '[' + this.indexTypes.map(t => t.print(indent, noColor)).join(', ') + ']' + this.optionalSuffix(ignoreOptional, noColor)
+        return '[' + this.indexTypes.map(t => t.print(noColor, indent)).join(', ') + ']' + this.optionalSuffix(ignoreOptional, noColor)
     }
 
     genEncode(varName: string, indent: number = 0): string {

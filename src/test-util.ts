@@ -3,7 +3,7 @@ import fs from 'fs'
 import ts from 'typescript'
 import path from 'path'
 import { codeGen, type EncoderDecoder } from './code-gen'
-import { createProgram, getType } from './type-extractor'
+import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import { TypeParser, type TypeParserConfig } from './type-parser'
 
 let tmpFileCounter = 0
@@ -25,7 +25,8 @@ async function setupProgram() {
 export async function setupParserAndParseNode(filePath: string, typeName: string, parserConfig?: TypeParserConfig) {
     await setupProgram()
 
-    const { type, fullPath } = getType(program, checker, filePath, typeName)
+    const file = getFile(program, filePath)
+    const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName)
 
     const parser = new TypeParser(checker, parserConfig)
     const node = parser.parseToNode(type)
