@@ -56,10 +56,27 @@ export class NumberNode extends Node {
     }
 
     genEncode(varName: string, indent: number = 0): string {
-        return this.genEncodeWrapOptional(varName, () => `encoder.f64(${varName})`, indent)
+        let suffix: string = getLetterFromNumberType(this.type)
+        if (this.type == NumberType.Float) {
+            suffix += `${this.bits}(${varName})`
+        } else {
+            suffix += this.bits <= 8 ? '8' : this.bits <= 16 ? '16' : this.bits <= 24 ? '24' : '32'
+            suffix += `(${varName}, ${this.bits})`
+        }
+        return this.genEncodeWrapOptional(varName, () => `encoder.${suffix}`, indent)
     }
 
     genDecode(): string {
-        return `${this.genDecodeWrapOptional(`decoder.f64()`)}`
+        let suffix: string = getLetterFromNumberType(this.type)
+        if (this.type == NumberType.Float) {
+            suffix += `${this.bits}()`
+        } else {
+            if (this.bits == 8 || this.bits == 16 || this.bits == 32) {
+                suffix += `${this.bits}()`
+            } else {
+                suffix += `(${this.bits})`
+            }
+        }
+        return this.genDecodeWrapOptional(`decoder.${suffix}`)
     }
 }

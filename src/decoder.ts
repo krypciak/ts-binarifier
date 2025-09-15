@@ -85,16 +85,19 @@ export class Decoder {
         return v
     }
 
+    i(bitLength: number): number {
+        return this.u(bitLength, true)
+    }
     i8() {
-        const v = this.u(8, true)
+        const v = this.i(8)
         return v
     }
     i16() {
-        const v = this.u(16, true)
+        const v = this.i(16)
         return v
     }
     i32() {
-        const v = this.u(32, true)
+        const v = this.i(32)
         return v
     }
 
