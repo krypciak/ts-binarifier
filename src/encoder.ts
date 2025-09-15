@@ -10,9 +10,9 @@ export class Encoder {
         let dataOffset = 0
 
         while (bitLength) {
-            const v = data[dataI] >> dataOffset
-            this.buf[this.buf.length - 1] |= v << this.bufOffset
             const put = Math.min(bitLength, 8 - this.bufOffset, 8 - dataOffset)
+            const v = (data[dataI] >> dataOffset) & ((1 << put) - 1)
+            this.buf[this.buf.length - 1] |= v << this.bufOffset
             this.bufOffset += put
             if (this.bufOffset >= 8) {
                 this.bufOffset -= 8
@@ -34,15 +34,18 @@ export class Encoder {
 
     u8(v: number, length: number = 8) {
         // console.log('encode u8:', v, 'len:', length)
-        this.pushData([v], length)
+        this.pushData([v & 0xff], length)
     }
     u16(v: number, length: number = 16) {
         // console.log('encode u16:', v, 'len:', length)
         this.pushData([v & 0xff, (v >>> 8) & 0xff], length)
     }
-    u32(v: number, length: number = 32) {
+    u24(v: number, length: number = 24) {
         // console.log('encode u32:', v, 'len:', length)
-        this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >> 24) & 0xff], length)
+        this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff], length)
+    }
+    u32(v: number, length: number = 32) {
+        this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff], length)
     }
 
     i8(v: number, length: number = 8) {

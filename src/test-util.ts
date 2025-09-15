@@ -41,6 +41,14 @@ async function encodeDecodeDataSetup<T>(filePath: string, typeName: string): Pro
 
 function encodeDecodeDataTest<T>(EncoderDecoder: EncoderDecoder<T>, data: T) {
     const buf = EncoderDecoder.encode(data)
+    // console.log(buf)
+    // for (let i = 0; i < buf.length; i++) {
+    //     let str = ''
+    //     for (let j = 8; j >= 0; j--) {
+    //         str += (buf[i] & (1<<j)) ? '1' : '0'
+    //     }
+    //     console.log(str)
+    // }
 
     const decoded = EncoderDecoder.decode(buf)
 

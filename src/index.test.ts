@@ -1,6 +1,6 @@
 import { test } from 'bun:test'
 import { encodeDecodeDataTestMultiple } from './test-util'
-import type { i8, nodeAny, u8 } from './type-aliases'
+import type { f32, i2, i5, i8, nodeAny, u16, u2, u24, u32, u8 } from './type-aliases'
 
 const path = new URL('', import.meta.url).pathname
 
@@ -70,5 +70,20 @@ test('encode decode data any number', async () => {
 
 type Type10 = [string, string | undefined]
 test('encode decode data array const optional', async () => {
-    await encodeDecodeDataTestMultiple<Type10>(path, 'Type10', [['das', 'hi'], ['lo', undefined]])
+    await encodeDecodeDataTestMultiple<Type10>(path, 'Type10', [
+        ['das', 'hi'],
+        ['lo', undefined],
+    ])
+})
+
+type Type11 = {
+    a: i2
+    b: u2
+    c: f32
+}
+test('encode decode data different number types', async () => {
+    await encodeDecodeDataTestMultiple<Type11>(path, 'Type11', [
+        { a: -1, b: 0, c: -3 },
+        { a: 1, b: 2, c: -8594.25 },
+    ])
 })
