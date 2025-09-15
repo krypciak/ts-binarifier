@@ -4,7 +4,7 @@ import ts from 'typescript'
 import path from 'path'
 import { codeGen, type EncoderDecoder } from './code-gen'
 import { createProgram, getType } from './type-extractor'
-import { TypeParser } from './type-parser'
+import { TypeParser, type TypeParserConfig } from './type-parser'
 
 let tmpFileCounter = 0
 async function createTempFile(suffix: string): Promise<string> {
@@ -22,16 +22,23 @@ async function setupProgram() {
     ;({ program, checker } = await createProgram(projectRoot))
 }
 
-async function encodeDecodeDataSetup<T>(filePath: string, typeName: string): Promise<EncoderDecoder<T>> {
+export async function setupParserAndParseNode(filePath: string, typeName: string, parserConfig?: TypeParserConfig) {
     await setupProgram()
-
-    const outFile = await createTempFile('.ts')
 
     const { type, fullPath } = getType(program, checker, filePath, typeName)
 
-    const parser = new TypeParser(checker, {})
+    const parser = new TypeParser(checker, parserConfig)
     const node = parser.parseToNode(type)
+    return { node, fullPath }
+}
 
+async function encodeDecodeDataSetup<T>(
+    filePath: string,
+    typeName: string,
+    parserConfig?: TypeParserConfig
+): Promise<EncoderDecoder<T>> {
+    const { node, fullPath } = await setupParserAndParseNode(filePath, typeName, parserConfig)
+    const outFile = await createTempFile('.ts')
     const code = codeGen(node, 'Gen', fullPath, typeName, outFile)
     await fs.promises.writeFile(outFile, code)
 
@@ -55,8 +62,13 @@ function encodeDecodeDataTest<T>(EncoderDecoder: EncoderDecoder<T>, data: T) {
     expect(decoded).toEqual(data)
 }
 
-export async function encodeDecodeDataTestMultiple<T>(filePath: string, typeName: string, dataArray: T[]) {
-    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName)
+export async function encodeDecodeDataTestMultiple<T>(
+    filePath: string,
+    typeName: string,
+    dataArray: T[],
+    parserConfig?: TypeParserConfig
+) {
+    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig)
     for (const data of dataArray) {
         encodeDecodeDataTest(EncoderDecoder, data)
     }

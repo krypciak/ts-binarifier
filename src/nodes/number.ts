@@ -40,6 +40,16 @@ export class NumberNode extends Node {
         return new NumberNode(optional, Math.max(1, bits), signed ? NumberType.Signed : NumberType.Unsigned)
     }
 
+    static fromName(optional: boolean | undefined, name: string): Node | undefined {
+        const numberType = getNumberTypeFromLetter(name[0])
+        if (name.length >= 2 && name.length <= 4 && numberType) {
+            const bits = parseInt(name.substring(1))
+            if (!Number.isNaN(bits)) {
+                return new NumberNode(optional, bits, numberType)
+            }
+        }
+    }
+
     constructor(
         optional: boolean | undefined,
         public bits: number,

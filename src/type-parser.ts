@@ -56,12 +56,18 @@ function deepFind<T>(
     return newObj
 }
 
+export interface TypeParserConfig {
+    noEnumOptimalization?: boolean
+    use32BitFloatsByDefault?: boolean
+    enumTypeOverride?: Record<string, string>
+}
+
 export class TypeParser {
     defaultFloatBits = 64
 
     constructor(
         public checker: ts.TypeChecker,
-        public config: { noEnumOptimalization?: boolean; use32BitFloatsByDefault?: boolean } = {}
+        public config: TypeParserConfig = {}
     ) {
         if (config.use32BitFloatsByDefault) {
             this.defaultFloatBits = 32
@@ -81,14 +87,31 @@ export class TypeParser {
 
             if (truthyType.isUnion()) {
                 let truthyTypes = truthyType.types
-                if (!this.config.noEnumOptimalization) {
-                    /* merge enums */
+                {
                     const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
-                    if (enumValueTypes.length > 0 && enumValueTypes.every(t => t.isNumberLiteral())) {
-                        const values = enumValueTypes.map(t => t.value)
-                        const min = Math.min(...values)
-                        const max = Math.max(...values)
-                        return NumberNode.optimalForRange(isOptional, min, max)
+                    if (enumValueTypes.length > 0) {
+                        if (this.config.enumTypeOverride) {
+                            const enumNames = enumValueTypes.map(t => {
+                                const enumDec = t.symbol.declarations?.[0].parent
+                                if (!enumDec) return
+                                assert(ts.isEnumDeclaration(enumDec))
+                                return enumDec.name.getText()
+                            })
+                            for (const enumName of enumNames) {
+                                if (!enumName) continue
+                                const valueOverride = this.config.enumTypeOverride[enumName]
+                                if (!valueOverride) continue
+                                const numberNode = NumberNode.fromName(isOptional, valueOverride)
+                                if (numberNode) return numberNode
+                            }
+                        }
+
+                        if (!this.config.noEnumOptimalization && enumValueTypes.every(t => t.isNumberLiteral())) {
+                            const values = enumValueTypes.map(t => t.value)
+                            const min = Math.min(...values)
+                            const max = Math.max(...values)
+                            return NumberNode.optimalForRange(isOptional, min, max)
+                        }
                     }
                 }
                 {
@@ -149,19 +172,11 @@ export class TypeParser {
                 const prop = potentialTypeRecord[0].getProperties()[0]
                 const name = prop.name
 
-                {
-                    const numberType = getNumberTypeFromLetter(name[0])
-                    if (name.length >= 2 && name.length <= 4 && numberType) {
-                        const bits = parseInt(name.substring(1))
-                        if (!Number.isNaN(bits)) {
-                            return new NumberNode(isOptional, bits, numberType)
-                        }
-                    }
-                }
-                {
-                    if (name == 'any') {
-                        return new JsonNode(isOptional)
-                    }
+                const numberNode = NumberNode.fromName(isOptional, name)
+                if (numberNode) return numberNode
+
+                if (name == 'any') {
+                    return new JsonNode(isOptional)
                 }
             }
             console.log(spacing, 'intersection')
