@@ -6,8 +6,8 @@ export class BooleanNode extends Node {
         super(optional)
     }
 
-    print(_indent: number = 0, ignoreOptional?: boolean) {
-        return red('boolean') + this.optionalSuffix(ignoreOptional)
+    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
+        return red('boolean', noColor) + this.optionalSuffix(noColor, ignoreOptional)
     }
 
     genEncode(varName: string, indent: number = 0): string {

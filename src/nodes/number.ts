@@ -51,8 +51,11 @@ export class NumberNode extends Node {
         }
     }
 
-    print(_indent: number = 0, ignoreOptional?: boolean) {
-        return yellow(getLetterFromNumberType(this.type) + this.bits) + this.optionalSuffix(ignoreOptional)
+    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
+        return (
+            yellow(getLetterFromNumberType(this.type) + this.bits, noColor) +
+            this.optionalSuffix(noColor, ignoreOptional)
+        )
     }
 
     genEncode(varName: string, indent: number = 0): string {

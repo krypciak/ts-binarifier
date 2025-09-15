@@ -6,8 +6,8 @@ export class NullNode extends Node {
         super(optional)
     }
 
-    print(_indent: number = 0, ignoreOptional?: boolean) {
-        return gray('null') + this.optionalSuffix(ignoreOptional)
+    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
+        return gray('null', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
     genEncode(_varName: string): string {

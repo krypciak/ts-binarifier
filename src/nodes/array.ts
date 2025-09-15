@@ -8,8 +8,8 @@ export class ArrayNode extends Node {
         super(optional)
     }
 
-    print(indent: number = 0, ignoreOptional?: boolean) {
-        return this.type.print(indent) + '[]' + this.optionalSuffix(ignoreOptional)
+    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+        return this.type.print(noColor, indent) + '[]' + this.optionalSuffix(ignoreOptional, noColor)
     }
 
     genEncode(varName: string, indent: number = 0): string {

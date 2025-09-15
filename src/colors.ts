@@ -18,22 +18,23 @@ const close = '\u001b[39m'
 //     reset: { open: '\u001b[0m', close: '\u001b[0m' },
 // }
 
-function color(str: string, id: number): string {
+function color(str: string, id: number, noColor?: boolean): string {
+    if (noColor) return str
     return `\u001b[${id}m` + str + close
 }
 
-export function gray(str: string): string {
-    return color(str, 90)
+export function gray(str: string, noColor?: boolean): string {
+    return color(str, 90, noColor)
 }
-export function yellow(str: string): string {
-    return color(str, 33)
+export function yellow(str: string, noColor?: boolean): string {
+    return color(str, 33, noColor)
 }
-export function red(str: string): string {
-    return color(str, 31)
+export function red(str: string, noColor?: boolean): string {
+    return color(str, 31, noColor)
 }
-export function green(str: string): string {
-    return color(str, 32)
+export function green(str: string, noColor?: boolean): string {
+    return color(str, 32, noColor)
 }
-export function magenta(str: string): string {
-    return color(str, 35)
+export function magenta(str: string, noColor?: boolean): string {
+    return color(str, 35, noColor)
 }

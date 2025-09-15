@@ -8,18 +8,23 @@ export class InterfaceNode extends Node {
         super(optional)
     }
 
-    print(indent: number = 0, ignoreOptional?: boolean) {
+    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
         return (
             '{\n' +
             Object.entries(this.nodes)
                 .map(
-                    ([k, v]) => Node.indent(indent + 1) + k + (v.optional ? '?' : '') + ': ' + v.print(indent + 1, true)
+                    ([k, v]) =>
+                        Node.indent(indent + 1) +
+                        k +
+                        (v.optional ? '?' : '') +
+                        ': ' +
+                        v.print(noColor, indent + 1, true)
                 )
                 .join(`,\n`) +
             '\n' +
             Node.indent(indent) +
             '}' +
-            this.optionalSuffix(ignoreOptional)
+            this.optionalSuffix(ignoreOptional, noColor)
         )
     }
 

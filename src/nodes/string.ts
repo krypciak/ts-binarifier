@@ -6,8 +6,8 @@ export class StringNode extends Node {
         super(optional)
     }
 
-    print(_indent: number = 0, ignoreOptional?: boolean) {
-        return green('string') + this.optionalSuffix(ignoreOptional)
+    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
+        return green('string', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
     genEncode(varName: string, indent: number = 0): string {

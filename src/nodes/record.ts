@@ -9,14 +9,14 @@ export class RecordNode extends Node {
         super(optional)
     }
 
-    print(indent: number = 0, ignoreOptional?: boolean) {
+    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
         return (
             'Record<' +
-            this.key.print(indent) +
+            this.key.print(noColor, indent) +
             ', ' +
-            this.value.print(indent) +
+            this.value.print(noColor, indent) +
             '>' +
-            this.optionalSuffix(ignoreOptional)
+            this.optionalSuffix(ignoreOptional, noColor)
         )
     }
 

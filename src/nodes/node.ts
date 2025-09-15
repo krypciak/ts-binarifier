@@ -11,8 +11,8 @@ export abstract class Node {
         return ' '.repeat(v * Node.indentMulti)
     }
 
-    protected optionalSuffix(ignoreOptional: boolean | undefined) {
-        return this.optional && !ignoreOptional ? ' | ' + gray('undefined') : ''
+    protected optionalSuffix(ignoreOptional: boolean | undefined, noColor: boolean | undefined) {
+        return this.optional && !ignoreOptional ? ' | ' + gray('undefined', noColor) : ''
     }
 
     protected genEncodeWrapOptional(varName: string, strFunc: (indent: number) => string, indent: number) {
@@ -46,7 +46,7 @@ export abstract class Node {
 
     constructor(public optional: boolean | undefined) {}
 
-    abstract print(indent?: number, ignoreOptional?: boolean): string
+    abstract print(noColor?: boolean, indent?: number, ignoreOptional?: boolean): string
     abstract genEncode(varName: string, indent?: number): string
     abstract genDecode(indent?: number): string
 }

@@ -6,8 +6,8 @@ export class UndefinedNode extends Node {
         super(optional)
     }
 
-    print() {
-        return gray('undefined')
+    print(noColor?: boolean) {
+        return gray('undefined', noColor)
     }
 
     genEncode(_varName: string): string {
