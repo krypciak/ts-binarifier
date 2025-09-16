@@ -71,7 +71,7 @@ export class TypeParser {
     }
 
     parseToNode(type: ts.Type, indent = 0, isOptional?: boolean): Node {
-        const debug = true
+        const debug = false
         const spacing = '  '.repeat(indent)
 
         if (type.isUnion()) {

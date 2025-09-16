@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
-import { Encoder } from './encoder'
-import { Decoder } from './decoder'
+import { Encoder } from '../encoder'
+import { Decoder } from '../decoder'
 
 test('encode decode boolean', () => {
     const encoder = new Encoder()

@@ -5,6 +5,7 @@ import './colors'
 import { TypeParser } from './type-parser'
 import { customStuffNode } from './custom-handler'
 
+/* TODO: asserts in encoder */
 
 async function run() {
     const projectRoot = '/home/krypek/home/Programming/crosscode/instances/cc-server/assets/mods/cc-multibakery'

@@ -1,6 +1,6 @@
 import { test } from 'bun:test'
 import { encodeDecodeDataTestMultiple } from './test-util'
-import type { f32, i2, i5, i8, nodeAny, u16, u2, u24, u32, u8 } from './type-aliases'
+import type { f32, i2, i8, nodeAny, u2, u8 } from '../type-aliases'
 
 const path = new URL('', import.meta.url).pathname
 

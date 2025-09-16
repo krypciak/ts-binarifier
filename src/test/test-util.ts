@@ -2,9 +2,9 @@ import { expect } from 'bun:test'
 import fs from 'fs'
 import ts from 'typescript'
 import path from 'path'
-import { codeGen, type EncoderDecoder } from './code-gen'
-import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
-import { TypeParser, type TypeParserConfig } from './type-parser'
+import { codeGen, type EncoderDecoder } from '../code-gen'
+import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
+import { TypeParser, type TypeParserConfig } from '../type-parser'
 
 let tmpFileCounter = 0
 async function createTempFile(suffix: string): Promise<string> {

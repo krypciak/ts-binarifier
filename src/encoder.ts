@@ -48,7 +48,9 @@ export class Encoder {
         this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff], length)
     }
     u32(v: number, length: number = 32) {
-        if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
+        if (length == 32) {
+            if (v > 2147483647) throw new Error(`value: ${v} too large! expected bits: ${length}`)
+        } else if (v > (1 << length) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.pushData([v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff], length)
     }
 
@@ -56,13 +58,17 @@ export class Encoder {
         if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
         this.u8(v, length)
     }
-    i16(v: number, length: number = 32) {
+    i16(v: number, length: number = 16) {
         if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
-        this.i16(v, length)
+        this.u16(v, length)
+    }
+    i24(v: number, length: number = 24) {
+        if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
+        this.u24(v, length)
     }
     i32(v: number, length: number = 32) {
         if (v > (1 << (length - 1)) - 1) throw new Error(`value: ${v} too large! expected bits: ${length}`)
-        this.i32(v, length)
+        this.u32(v, length)
     }
 
     private doubleToIEEE32(f: number) {
