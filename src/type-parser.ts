@@ -9,12 +9,19 @@ import { InterfaceNode } from './nodes/interface'
 import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
-import { customStuffNode } from './custom-handler'
+
+export type NodeCreateFunction = (
+    optional: boolean | undefined,
+    types: ts.Type[],
+    parser: TypeParser,
+    indent: number
+) => Node
 
 export interface TypeParserConfig {
     noEnumOptimalization?: boolean
     use32BitFloatsByDefault?: boolean
     enumTypeOverride?: Record<string, string>
+    customNodes?: Record<string, NodeCreateFunction>
 }
 
 function getSpecialLabel(types: ts.Type[]) {
@@ -148,13 +155,16 @@ export class TypeParser {
                     return new JsonNode(isOptional)
                 }
 
-                if (specialLabel == 'customStuff') {
-                    return customStuffNode(
-                        isOptional,
-                        type.types.filter(t => t != specialType),
-                        this,
-                        indent
-                    )
+                if (this.config.customNodes) {
+                    const entry = this.config.customNodes[specialLabel]
+                    if (entry) {
+                        return entry(
+                            isOptional,
+                            type.types.filter(t => t != specialType),
+                            this,
+                            indent
+                        )
+                    }
                 }
             }
             console.log(spacing, 'intersection')

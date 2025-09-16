@@ -3,6 +3,8 @@ import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import './colors'
 import { TypeParser } from './type-parser'
+import { customStuffNode } from './custom-handler'
+
 
 async function run() {
     const projectRoot = '/home/krypek/home/Programming/crosscode/instances/cc-server/assets/mods/cc-multibakery'
@@ -21,7 +23,7 @@ async function run() {
     const file = getFile(program, filePath)
     const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName)
 
-    const parser = new TypeParser(checker, {})
+    const parser = new TypeParser(checker, { customNodes: { customUnionRecord: customStuffNode } })
     const node = parser.parseToNode(type)
     console.log(node.print())
 
