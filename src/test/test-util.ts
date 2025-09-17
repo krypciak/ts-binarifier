@@ -6,10 +6,13 @@ import { codeGen, type EncoderDecoder } from '../code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
 import { TypeParser, type TypeParserConfig } from '../type-parser'
 
+const projectRoot = new URL('../..', import.meta.url).pathname
+
 let tmpFileCounter = 0
 async function createTempFile(suffix: string): Promise<string> {
-    await fs.promises.mkdir('tmp', { recursive: true })
-    const path = 'tmp/' + tmpFileCounter + suffix
+    const tmpDir = projectRoot + '/tmp'
+    await fs.promises.mkdir(tmpDir, { recursive: true })
+    const path = tmpDir + '/' + tmpFileCounter + suffix
     tmpFileCounter++
     return path
 }
@@ -18,7 +21,6 @@ let program: ts.Program
 let checker: ts.TypeChecker
 async function setupProgram() {
     if (program) return
-    const projectRoot = process.cwd()
     ;({ program, checker } = await createProgram(projectRoot))
 }
 
