@@ -1,5 +1,6 @@
 import type { TypeParserConfig } from './type-parser'
-import fs from 'fs'
+import * as fs from 'fs'
+import * as path from 'path'
 import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import { TypeParser } from './type-parser'
@@ -48,6 +49,7 @@ export async function generateEncodeDecodeScripts(config: Config) {
         const decoderPath = baseImportPath ? `${baseImportPath}/src/decoder` : undefined
 
         const code = codeGen(node, outClassName, fullPath, typeName, outPath, encoderPath, decoderPath)
+        await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)
     }
 }
