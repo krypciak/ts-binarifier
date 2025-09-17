@@ -1,5 +1,5 @@
 {
-    "name": "binarifier",
+    "name": "ts-binarifier",
     "module": "src/index.ts",
     "type": "module",
     "private": true,

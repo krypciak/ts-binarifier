@@ -1,5 +1,5 @@
 import { customStuffNode } from './custom-handler'
-import { generateEncodeDecodeScripts } from './config'
+import { generateEncodeDecodeScripts } from './index'
 
 /* TODO: asserts in encoder */
 
