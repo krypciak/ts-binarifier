@@ -87,3 +87,8 @@ test('encode decode data different number types', async () => {
         { a: 1, b: 2, c: -8594.25 },
     ])
 })
+
+type Type12 = 'a' | 'b' | 'c'
+test('encode decode data string union', async () => {
+    await encodeDecodeDataTestMultiple<Type12>(path, 'Type12', ['a', 'b', 'c'])
+})

@@ -9,6 +9,7 @@ import { InterfaceNode } from './nodes/interface'
 import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
+import { StringEnumNode } from './nodes/string-enum'
 
 export type NodeCreateFunction = (
     optional: boolean | undefined,
@@ -56,6 +57,10 @@ export function getRecordKeyType(type: ts.Type): ts.Type | undefined {
 
 export function getRecordValueType(type: ts.Type): ts.Type | undefined {
     return type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
+}
+
+function areAllTheSameClass<T>(arr: T[]): boolean {
+    return arr.every(t => Object.getPrototypeOf(t) === Object.getPrototypeOf(arr[0]))
 }
 
 export class TypeParser {
@@ -128,10 +133,9 @@ export class TypeParser {
                 }
                 {
                     /* merge string literals */
-                    let stringType = truthyTypes.find(t => t.flags & ts.TypeFlags.StringLiteral)
-                    if (stringType) {
-                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.StringLiteral))
-                        truthyTypes.push(stringType)
+                    if (truthyTypes.every(t => t.isStringLiteral())) {
+                        const values = truthyTypes.map(t => (t as ts.StringLiteralType).value)
+                        return new StringEnumNode(isOptional, values)
                     }
                 }
 
@@ -168,6 +172,7 @@ export class TypeParser {
                 }
             }
             console.log(spacing, 'intersection')
+
             throw new Error('unimplemented intersection')
         } else if (type.isLiteral()) {
             if (debug) console.log(spacing, 'literal', type.value)
@@ -198,6 +203,7 @@ export class TypeParser {
             assert(keyType)
             const keyNode = this.parseToNode(keyType, indent + 1)
 
+            deepFind(type, 'gaming')
             const valueType = getRecordValueType(type)
             assert(valueType)
             const valueNode = this.parseToNode(valueType, indent + 1)
@@ -217,10 +223,7 @@ export class TypeParser {
                 })
                 .toArray()
 
-            const isAllTheSame = valueTypes.every(
-                t => Object.getPrototypeOf(t) === Object.getPrototypeOf(valueTypes[0])
-            )
-            if (isAllTheSame) {
+            if (areAllTheSameClass(valueTypes)) {
                 return new RecordNode(isOptional, new StringNode(false), valueTypes[0])
             } else {
                 return new JsonNode(isOptional)
@@ -328,7 +331,7 @@ function stripFunctions(obj: any, seen = new WeakMap()) {
         return result
     }
 
-    return obj // primitive or function (functions excluded earlier)
+    return obj
 }
 
 function deepFind<T>(

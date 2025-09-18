@@ -1,7 +1,5 @@
 import { generateEncodeDecodeScripts } from './index'
 
-/* TODO: asserts in encoder */
-
 await generateEncodeDecodeScripts({
     configs: [
         // {
