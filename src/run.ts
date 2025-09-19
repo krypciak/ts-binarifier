@@ -18,9 +18,11 @@ await generateEncodeDecodeScripts({
             path: 'src/server/remote/remote-server-sender.ts',
             typeType: 'type',
             typeName: 'GenerateType',
-            outPath: '',
+            outPath:
+                '/home/krypek/home/Programming/crosscode/instances/cc-server/assets/mods/cc-multibakery/src/net/binary/remote-update-packet-encoder-decoder.generated.ts',
             outClassName: 'PhysicsStatePacketEncoderDecoder',
             printNode: true,
+            insertTsIgnore: true,
         },
     ],
 })

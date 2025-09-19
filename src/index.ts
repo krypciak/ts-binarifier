@@ -1,4 +1,5 @@
 import type { TypeParserConfig } from './type-parser'
+import ts from 'typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 import { codeGen } from './code-gen'
@@ -21,6 +22,7 @@ export interface SingleConfig {
     baseImportPath?: string
     encodeConfig?: GenEncodeConfig
     decodeConfig?: GenDecodeConfig
+    insertTsIgnore?: boolean
 }
 
 export async function generateEncodeDecodeScripts(config: Config) {
@@ -28,9 +30,9 @@ export async function generateEncodeDecodeScripts(config: Config) {
 
     for (const singleConfig of config.configs) {
         const projectRoot = singleConfig.projectRoot ?? process.cwd()
+        const outPath = path.normalize(singleConfig.outPath)
         const {
             typeName,
-            outPath,
             path: filePath,
             outClassName,
             printNode,
@@ -38,6 +40,7 @@ export async function generateEncodeDecodeScripts(config: Config) {
             baseImportPath,
             encodeConfig = {},
             decodeConfig = {},
+            insertTsIgnore,
         } = singleConfig
 
         const { program, checker } = (programs[projectRoot] ??= await createProgram(projectRoot))
@@ -52,7 +55,7 @@ export async function generateEncodeDecodeScripts(config: Config) {
         const encoderPath = baseImportPath ? `${baseImportPath}/src/encoder` : undefined
         const decoderPath = baseImportPath ? `${baseImportPath}/src/decoder` : undefined
 
-        const code = codeGen({
+        let code = codeGen({
             type: node,
             className: outClassName,
             typeImportPath: fullPath,
@@ -63,7 +66,33 @@ export async function generateEncodeDecodeScripts(config: Config) {
             encodeConfig,
             decodeConfig,
         })
+
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)
+
+        if (insertTsIgnore) {
+            const { program: newProgram } = await createProgram(projectRoot)
+            const allDiag = newProgram.getSemanticDiagnostics()
+            const fileDiag = allDiag.filter(diag => diag.file?.fileName?.startsWith(outPath))
+            if (fileDiag.length > 0) {
+                const codeLines = code.split('\n')
+                const linesToInsert = new Set(
+                    fileDiag
+                        .map(diag => ts.getLineAndCharacterOfPosition(diag.file!, diag.start!).line)
+                        .toSorted((a, b) => b - a)
+                )
+
+                for (const line of linesToInsert) {
+                    const origLine = codeLines[line]
+                    let indent = 0
+                    for (; origLine[indent] == ' '; indent++);
+
+                    codeLines.splice(line, 0, ' '.repeat(indent) + '// @ts-ignore')
+                }
+                code = codeLines.join('\n')
+
+                await fs.promises.writeFile(outPath, code)
+            }
+        }
     }
 }
