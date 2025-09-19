@@ -4,7 +4,7 @@ declare global {
     interface GenEncodeData {
         varName: string
         indent: number
-        varNameCounter: number
+        varCounter: { v: number }
         config: GenEncodeConfig
     }
     interface GenEncodeConfig {

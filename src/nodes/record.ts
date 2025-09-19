@@ -23,23 +23,25 @@ export class RecordNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        return this.genEncodeWrapOptional(
-            data,
-            data =>
+        return this.genEncodeWrapOptional(data, data => {
+            const keyVar = `k${data.varCounter.v++}`
+            const valueVar = `v${data.varCounter.v++}`
+            return (
                 this.sizeNode.genEncode({ ...data, varName: `Object.keys(${data.varName}).length` }) +
                 '\n' +
                 Node.indent(data.indent) +
-                `for (const [k${data.indent}, v${data.indent}] of Object.entries(${data.varName})` +
+                `for (const [${keyVar}, ${valueVar}] of Object.entries(${data.varName})` +
                 ` as unknown as [keyof typeof ${data.varName}, NonNullable<(typeof ${data.varName})[keyof typeof ${data.varName}]>][]) {\n` +
                 Node.indent(data.indent + 1) +
-                `${this.key.genEncode({ ...data, varName: `k${data.indent}`, indent: data.indent + 1 })}` +
+                `${this.key.genEncode({ ...data, varName: keyVar, indent: data.indent + 1 })}` +
                 '\n' +
                 Node.indent(data.indent + 1) +
-                `${this.value.genEncode({ ...data, varName: `v${data.indent}`, indent: data.indent + 1 })}` +
+                `${this.value.genEncode({ ...data, varName: valueVar, indent: data.indent + 1 })}` +
                 `\n` +
                 Node.indent(data.indent) +
                 `}`
-        )
+            )
+        })
     }
 
     genDecode(data: GenDecodeData): string {

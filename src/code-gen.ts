@@ -48,7 +48,7 @@ function genParsingClass({
         Node.indent(2) +
         `const encoder = new Encoder()\n` +
         Node.indent(2) +
-        type.genEncode({ config: encodeConfig, varName: 'data', indent: 2, varNameCounter: 0 }) +
+        type.genEncode({ config: encodeConfig, varName: 'data', indent: 2, varCounter: { v: 0 } }) +
         '\n' +
         Node.indent(2) +
         `return encoder.getBuffer()\n` +

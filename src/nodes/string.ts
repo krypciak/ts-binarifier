@@ -16,8 +16,7 @@ export class StringNode extends Node {
 
     genEncode(data: GenEncodeData) {
         return this.genEncodeWrapOptional(data, data => {
-            /* TODO: fix this warcrime */
-            const bufVar = `buf${Math.floor(10000 * Math.random())}`
+            const bufVar = `buf${data.varCounter.v++}`
 
             return (
                 `const ${bufVar} = new TextEncoder().encode(${data.varName})` +

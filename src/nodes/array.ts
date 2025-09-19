@@ -15,19 +15,20 @@ export class ArrayNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        return this.genEncodeWrapOptional(
-            data,
-            data =>
+        return this.genEncodeWrapOptional(data, data => {
+            const valueVar = `v${data.varCounter.v++}`
+            return (
                 this.sizeNode.genEncode({ ...data, varName: `${data.varName}.length` }) +
                 '\n' +
                 Node.indent(data.indent) +
-                `for (const v${data.indent} of ${data.varName}) {\n` +
+                `for (const ${valueVar} of ${data.varName}) {\n` +
                 Node.indent(data.indent + 1) +
-                `${this.type.genEncode({ ...data, varName: `v${data.indent}`, indent: data.indent + 1 })}` +
+                `${this.type.genEncode({ ...data, varName: valueVar, indent: data.indent + 1 })}` +
                 `\n` +
                 Node.indent(data.indent) +
                 `}`
-        )
+            )
+        })
     }
 
     genDecode(data: GenDecodeData): string {
