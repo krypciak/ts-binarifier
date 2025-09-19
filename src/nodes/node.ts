@@ -11,9 +11,7 @@ export interface GenEncodeConfig {
 export interface GenDecodeData {
     indent: number
 }
-export interface GenDecodeConfig {
-    asserts?: boolean
-}
+export interface GenDecodeConfig {}
 
 export abstract class Node {
     static jsonVarName = 'json'
@@ -53,6 +51,11 @@ export abstract class Node {
             const str = strFunc({ varName, indent })
             return str
         }
+    }
+
+    protected static genEncodeAssertNot({ varName, indent }: GenEncodeData, { asserts }: GenEncodeConfig, msg: string) {
+        if (!asserts || !varName) return ''
+        return `if (${varName}) throw new Error(\`${msg}\`)` + '\n' + Node.indent(indent)
     }
 
     protected genDecodeWrapOptional(str: string) {

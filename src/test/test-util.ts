@@ -5,6 +5,7 @@ import path from 'path'
 import { codeGen, type EncoderDecoder } from '../code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
 import { TypeParser, type TypeParserConfig } from '../type-parser'
+import type { GenDecodeConfig, GenEncodeConfig } from '../nodes/node'
 
 const projectRoot = new URL('../..', import.meta.url).pathname
 
@@ -28,7 +29,7 @@ export async function setupParserAndParseNode(filePath: string, typeName: string
     await setupProgram()
 
     const file = getFile(program, filePath)
-    const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName)
+    const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName, 4)
 
     const parser = new TypeParser(checker, parserConfig)
     const node = parser.parseToNode(type)
@@ -38,7 +39,9 @@ export async function setupParserAndParseNode(filePath: string, typeName: string
 async function encodeDecodeDataSetup<T>(
     filePath: string,
     typeName: string,
-    parserConfig?: TypeParserConfig
+    parserConfig: TypeParserConfig,
+    encodeConfig: GenEncodeConfig,
+    decodeConfig: GenDecodeConfig
 ): Promise<EncoderDecoder<T>> {
     const { node, fullPath } = await setupParserAndParseNode(filePath, typeName, parserConfig)
     const outFile = await createTempFile('.ts')
@@ -48,6 +51,8 @@ async function encodeDecodeDataSetup<T>(
         typeImportPath: fullPath,
         typeShortName: typeName,
         destPath: outFile,
+        encodeConfig,
+        decodeConfig,
     })
     await fs.promises.writeFile(outFile, code)
 
@@ -75,10 +80,34 @@ export async function encodeDecodeDataTestMultiple<T>(
     filePath: string,
     typeName: string,
     dataArray: T[],
-    parserConfig?: TypeParserConfig
+    parserConfig: TypeParserConfig = {},
+    encodeConfig: GenEncodeConfig = {},
+    decodeConfig: GenDecodeConfig = {}
 ) {
-    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig)
+    encodeConfig.asserts ??= true
+
+    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig, encodeConfig, decodeConfig)
     for (const data of dataArray) {
         encodeDecodeDataTest(EncoderDecoder, data)
+    }
+}
+
+export function encodeTestThrows<T>(EncoderDecoder: EncoderDecoder<T>, data: T) {
+    expect(() => EncoderDecoder.encode(data)).toThrowError()
+}
+
+export async function encodeMultipleThrows<T>(
+    filePath: string,
+    typeName: string,
+    dataArray: T[],
+    parserConfig: TypeParserConfig = {},
+    encodeConfig: GenEncodeConfig = {},
+    decodeConfig: GenDecodeConfig = {}
+) {
+    encodeConfig.asserts ??= true
+
+    const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig, encodeConfig, decodeConfig)
+    for (const data of dataArray) {
+        encodeTestThrows(EncoderDecoder, data)
     }
 }

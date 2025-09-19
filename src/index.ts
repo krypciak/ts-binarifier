@@ -5,8 +5,6 @@ import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import { TypeParser } from './type-parser'
 
-/* TODO: assertons directly in code gen */
-
 export interface Config {
     configs: SingleConfig[]
 }
@@ -59,6 +57,10 @@ export async function generateEncodeDecodeScripts(config: Config) {
             destPath: outPath,
             encoderPath,
             decoderPath,
+            encodeConfig: {
+                asserts: true,
+            },
+            decodeConfig: {},
         })
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)

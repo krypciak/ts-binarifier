@@ -68,8 +68,17 @@ export class NumberNode extends Node {
         )
     }
 
+    private genEncodeRangeCheck(varName: string): string {
+        if (this.type == NumberType.Float) return ''
+        const valueBitCount = BigInt(this.type == NumberType.Unsigned ? this.bits : this.bits - 1)
+
+        const min = this.type == NumberType.Unsigned ? 0 : -Number(1n << valueBitCount)
+        const max = Number(1n << valueBitCount) - 1
+        return `${varName} < ${min} || ${varName} > ${max}`
+    }
+
     genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName }) => {
+        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) => {
             let suffix: string = getLetterFromNumberType(this.type)
             if (this.type == NumberType.Float) {
                 suffix += `${this.bits}(${varName})`
@@ -77,11 +86,14 @@ export class NumberNode extends Node {
                 suffix += this.bits <= 8 ? '8' : this.bits <= 16 ? '16' : this.bits <= 24 ? '24' : '32'
                 suffix += `(${varName}, ${this.bits})`
             }
-            return `encoder.${suffix}`
+            return (
+                Node.genEncodeAssertNot({ varName: this.genEncodeRangeCheck(varName), indent }, config, `Number of value: \${${varName}} does not fit into ${this.print(true)}`) +
+                `encoder.${suffix}`
+            )
         })
     }
 
-    genDecode(_data: GenDecodeData, config: GenDecodeConfig): string {
+    genDecode(_data: GenDecodeData, _config: GenDecodeConfig): string {
         let suffix: string = getLetterFromNumberType(this.type)
         if (this.type == NumberType.Float) {
             suffix += `${this.bits}()`
