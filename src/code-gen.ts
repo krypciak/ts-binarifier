@@ -53,6 +53,7 @@ function genParsingClass({
         `import { Encoder } from '${encoderPath}'\n` +
         `import { Decoder } from '${decoderPath}'\n` +
         (typeImportPath ? `import type { ${typeShortName} } from '${typeImportPath}'\n` : '') +
+        '\n' +
         `export class ${className} {\n` +
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
         (constants.length > 0 ? '\n\n' : '') +

@@ -32,7 +32,7 @@ export class StringNode extends Node {
 
     genDecode(data: GenDecodeData): string {
         return this.genDecodeWrapOptional(
-            `new TextDecoder().decode(decoder.bin(8*${this.maxSizeNode.genDecode(data)}))`
+            `new TextDecoder().decode(decoder.bin(8 * ${this.maxSizeNode.genDecode(data)}))`
         )
     }
 }
