@@ -19,6 +19,8 @@ export interface SingleConfig {
     parserOptions?: TypeParserConfig
     printNode?: boolean
     baseImportPath?: string
+    encodeConfig?: GenEncodeConfig
+    decodeConfig?: GenDecodeConfig
 }
 
 export async function generateEncodeDecodeScripts(config: Config) {
@@ -34,6 +36,8 @@ export async function generateEncodeDecodeScripts(config: Config) {
             printNode,
             parserOptions,
             baseImportPath,
+            encodeConfig = {},
+            decodeConfig = {},
         } = singleConfig
 
         const { program, checker } = (programs[projectRoot] ??= await createProgram(projectRoot))
@@ -56,10 +60,8 @@ export async function generateEncodeDecodeScripts(config: Config) {
             destPath: outPath,
             encoderPath,
             decoderPath,
-            encodeConfig: {
-                asserts: true,
-            },
-            decodeConfig: {},
+            encodeConfig,
+            decodeConfig,
         })
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)
