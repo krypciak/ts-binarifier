@@ -10,7 +10,7 @@ declare global {
 }
 
 export class StringEnumNode extends Node {
-    private unionIdNode: NumberNode
+    unionIdNode: NumberNode
 
     constructor(
         optional: boolean | undefined,
@@ -52,13 +52,16 @@ export class StringEnumNode extends Node {
         return thisVarName
     }
 
-    genEncode(data: GenEncodeData): string {
+    genEncodeAccess(data: GenEncodeData) {
         const unionVarName = this.getUnionVarName(data) ?? this.createUnionVarName(data)
+        return unionVarName + `.indexOf(${data.varName})`
+    }
 
+    genEncode(data: GenEncodeData): string {
         return this.genEncodeWrapOptional(data, data =>
             this.unionIdNode.genEncode({
                 ...data,
-                varName: unionVarName + `.indexOf(${data.varName})`,
+                varName: this.genEncodeAccess(data),
             })
         )
     }
