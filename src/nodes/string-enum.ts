@@ -1,6 +1,6 @@
-import { gray, green } from '../colors'
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
 import { NumberNode } from './number'
+import { gray, green } from '../colors'
 
 export class StringEnumNode extends Node {
     private unionIdNode: NumberNode
@@ -34,9 +34,9 @@ export class StringEnumNode extends Node {
         )
     }
 
-    genDecode(): string {
+    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
         return `${this.genDecodeWrapOptional(
-            `[${this.values.map(str => `'${str}'`).join(', ')}]` + `[${this.unionIdNode.genDecode()}]`
+            `[${this.values.map(str => `'${str}'`).join(', ')}]` + `[${this.unionIdNode.genDecode(data, config)}]`
         )}`
     }
 }

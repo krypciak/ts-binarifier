@@ -1,10 +1,12 @@
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { NumberNode, NumberType } from './number'
 
 export class RecordNode extends Node {
     constructor(
         optional: boolean | undefined,
         public key: Node,
-        public value: Node
+        public value: Node,
+        public sizeNode = new NumberNode(false, 8, NumberType.Signed)
     ) {
         super(optional)
     }
@@ -25,7 +27,8 @@ export class RecordNode extends Node {
             data,
             config,
             ({ varName, indent }) =>
-                `encoder.u8(Object.keys(${varName}).length)\n` +
+                this.sizeNode.genEncode({ varName: `Object.keys(${varName}).length`, indent }, config) +
+                '\n' +
                 Node.indent(indent) +
                 `for (const [k${indent}, v${indent}] of Object.entries(${varName}) as unknown as [keyof typeof ${varName}, NonNullable<(typeof ${varName})[keyof typeof ${varName}]>][]) {\n` +
                 Node.indent(indent + 1) +
@@ -39,11 +42,14 @@ export class RecordNode extends Node {
         )
     }
 
-    genDecode(indent: number = 0): string {
+    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+        const indent = data.indent
         return this.genDecodeWrapOptional(
-            `Object.fromEntries(new Array(decoder.u8()).fill(null).map(_ => [\n` +
+            `Object.fromEntries(new Array(` +
+                this.sizeNode.genDecode(data, config) +
+                `).fill(null).map(_ => [\n` +
                 Node.indent(indent + 1) +
-                `${this.key.genDecode(indent + 1)}, ${this.value.genDecode(indent + 1)}` +
+                `${this.key.genDecode({ indent: indent + 1 }, config)}, ${this.value.genDecode({ indent: indent + 1 }, config)}` +
                 `\n` +
                 Node.indent(indent) +
                 `]))`

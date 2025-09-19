@@ -8,6 +8,13 @@ export interface GenEncodeConfig {
     asserts?: boolean
 }
 
+export interface GenDecodeData {
+    indent: number
+}
+export interface GenDecodeConfig {
+    asserts?: boolean
+}
+
 export abstract class Node {
     static jsonVarName = 'json'
     static bufVarName = 'buf'
@@ -60,5 +67,5 @@ export abstract class Node {
 
     abstract print(noColor?: boolean, indent?: number, ignoreOptional?: boolean): string
     abstract genEncode(data: GenEncodeData, config: GenEncodeConfig): string
-    abstract genDecode(indent?: number): string
+    abstract genDecode(data: GenDecodeData, config: GenDecodeConfig): string
 }

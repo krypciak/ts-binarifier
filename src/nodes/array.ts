@@ -1,9 +1,11 @@
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { NumberNode, NumberType } from './number'
 
 export class ArrayNode extends Node {
     constructor(
         optional: boolean | undefined,
-        public type: Node
+        public type: Node,
+        public sizeNode = new NumberNode(false, 16, NumberType.Signed)
     ) {
         super(optional)
     }
@@ -17,7 +19,8 @@ export class ArrayNode extends Node {
             data,
             config,
             ({ varName, indent }) =>
-                `encoder.u16(${varName}.length)\n` +
+                this.sizeNode.genEncode({ varName: `${varName}.length`, indent }, config) +
+                '\n' +
                 Node.indent(indent) +
                 `for (const v${indent} of ${data.varName}) {\n` +
                 Node.indent(indent + 1) +
@@ -28,11 +31,14 @@ export class ArrayNode extends Node {
         )
     }
 
-    genDecode(indent: number = 0): string {
+    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+        const indent = data.indent
         return this.genDecodeWrapOptional(
-            `new Array(decoder.u16()).fill(null).map(_ => (\n` +
+            `new Array(` +
+                this.sizeNode.genDecode(data, config) +
+                `).fill(null).map(_ => (\n` +
                 Node.indent(indent + 1) +
-                `${this.type.genDecode(indent + 1)}` +
+                `${this.type.genDecode({ indent: indent + 1 }, config)}` +
                 `\n` +
                 Node.indent(indent) +
                 `))`

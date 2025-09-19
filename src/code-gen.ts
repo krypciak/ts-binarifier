@@ -56,7 +56,7 @@ function genParsingClass({
         `const decoder = new Decoder(buf)\n` +
         Node.indent(2) +
         'return ' +
-        type.genDecode(2) +
+        type.genDecode({ indent: 2 }, {}) +
         '\n' +
         Node.indent(1) +
         '}\n' +

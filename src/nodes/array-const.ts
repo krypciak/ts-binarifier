@@ -1,4 +1,4 @@
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class ArrayConstNode extends Node {
     constructor(
@@ -26,7 +26,7 @@ export class ArrayConstNode extends Node {
         )
     }
 
-    genDecode(indent: number = 0): string {
-        return `${this.genDecodeWrapOptional(`[${this.indexTypes.map(t => t.genDecode(indent)).join(', ')}]`)}`
+    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+        return this.genDecodeWrapOptional(`[${this.indexTypes.map(t => t.genDecode(data, config)).join(', ')}]`)
     }
 }

@@ -1,6 +1,6 @@
+import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
 import { assert } from '../assert'
 import { yellow } from '../colors'
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export enum NumberType {
     Unsigned = 1,
@@ -81,7 +81,7 @@ export class NumberNode extends Node {
         })
     }
 
-    genDecode(): string {
+    genDecode(_data: GenDecodeData, config: GenDecodeConfig): string {
         let suffix: string = getLetterFromNumberType(this.type)
         if (this.type == NumberType.Float) {
             suffix += `${this.bits}()`
