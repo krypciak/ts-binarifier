@@ -1,5 +1,5 @@
 import { green } from '../colors'
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class StringNode extends Node {
     constructor(optional: boolean | undefined) {
@@ -10,8 +10,8 @@ export class StringNode extends Node {
         return green('string', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(varName: string, indent: number = 0): string {
-        return this.genEncodeWrapOptional(varName, () => `encoder.string(${varName})`, indent)
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+        return this.genEncodeWrapOptional(data, config, ({ varName }) => `encoder.string(${varName})`)
     }
 
     genDecode(): string {

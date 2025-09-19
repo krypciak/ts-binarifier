@@ -1,4 +1,4 @@
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class InterfaceNode extends Node {
     constructor(
@@ -61,14 +61,11 @@ export class InterfaceNode extends Node {
         }
     }
 
-    genEncode(varName: string, indent: number = 0): string {
-        return this.genEncodeWrapOptional(
-            varName,
-            indent =>
-                Object.entries(this.nodes)
-                    .map(([k, v]) => v.genEncode(varName + this.genPropertyAccess(k), indent))
-                    .join('\n' + Node.indent(indent)),
-            indent
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) =>
+            Object.entries(this.nodes)
+                .map(([k, v]) => v.genEncode({ varName: varName + this.genPropertyAccess(k), indent }, config))
+                .join('\n' + Node.indent(indent))
         )
     }
 

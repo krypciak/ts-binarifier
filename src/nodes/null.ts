@@ -10,7 +10,7 @@ export class NullNode extends Node {
         return gray('null', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(_varName: string): string {
+    genEncode(): string {
         return ``
     }
 

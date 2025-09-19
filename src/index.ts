@@ -5,6 +5,8 @@ import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import { TypeParser } from './type-parser'
 
+/* TODO: assertons directly in code gen */
+
 export interface Config {
     configs: SingleConfig[]
 }
@@ -45,10 +47,19 @@ export async function generateEncodeDecodeScripts(config: Config) {
         const node = parser.parseToNode(type)
         if (printNode) console.log(node.print())
 
+        return
         const encoderPath = baseImportPath ? `${baseImportPath}/src/encoder` : undefined
         const decoderPath = baseImportPath ? `${baseImportPath}/src/decoder` : undefined
 
-        const code = codeGen(node, outClassName, fullPath, typeName, outPath, encoderPath, decoderPath)
+        const code = codeGen({
+            type: node,
+            className: outClassName,
+            typeImportPath: fullPath,
+            typeShortName: typeName,
+            destPath: outPath,
+            encoderPath,
+            decoderPath,
+        })
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)
     }

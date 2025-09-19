@@ -1,4 +1,4 @@
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class ArrayConstNode extends Node {
     constructor(
@@ -9,15 +9,20 @@ export class ArrayConstNode extends Node {
     }
 
     print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
-        return '[' + this.indexTypes.map(t => t.print(noColor, indent)).join(', ') + ']' + this.optionalSuffix(ignoreOptional, noColor)
+        return (
+            '[' +
+            this.indexTypes.map(t => t.print(noColor, indent)).join(', ') +
+            ']' +
+            this.optionalSuffix(ignoreOptional, noColor)
+        )
     }
 
-    genEncode(varName: string, indent: number = 0): string {
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
         return this.genEncodeWrapOptional(
-            varName,
-            indent =>
-                `${this.indexTypes.map((t, i) => t.genEncode(`${varName}[${i}]`, indent)).join('\n' + Node.indent(indent))}`,
-            indent
+            data,
+            config,
+            ({ varName, indent }) =>
+                `${this.indexTypes.map((t, i) => t.genEncode({ varName: `${varName}[${i}]`, indent }, config)).join('\n' + Node.indent(indent))}`
         )
     }
 

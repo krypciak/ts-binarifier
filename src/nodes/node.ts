@@ -1,5 +1,13 @@
 import { gray } from '../colors'
 
+export interface GenEncodeData {
+    varName: string
+    indent: number
+}
+export interface GenEncodeConfig {
+    asserts?: boolean
+}
+
 export abstract class Node {
     static jsonVarName = 'json'
     static bufVarName = 'buf'
@@ -15,10 +23,14 @@ export abstract class Node {
         return this.optional && !ignoreOptional ? ' | ' + gray('undefined', noColor) : ''
     }
 
-    protected genEncodeWrapOptional(varName: string, strFunc: (indent: number) => string, indent: number) {
+    protected genEncodeWrapOptional(
+        { varName, indent }: GenEncodeData,
+        _config: GenEncodeConfig,
+        strFunc: (data: GenEncodeData) => string
+    ) {
         if (this.optional) {
             indent++
-            const str = strFunc(indent)
+            const str = strFunc({ varName, indent })
             return (
                 `if (${varName} === undefined || ${varName} === null) encoder.boolean(false); else {` +
                 '\n' +
@@ -31,7 +43,7 @@ export abstract class Node {
                 '}'
             )
         } else {
-            const str = strFunc(indent)
+            const str = strFunc({ varName, indent })
             return str
         }
     }
@@ -47,6 +59,6 @@ export abstract class Node {
     constructor(public optional: boolean | undefined) {}
 
     abstract print(noColor?: boolean, indent?: number, ignoreOptional?: boolean): string
-    abstract genEncode(varName: string, indent?: number): string
+    abstract genEncode(data: GenEncodeData, config: GenEncodeConfig): string
     abstract genDecode(indent?: number): string
 }

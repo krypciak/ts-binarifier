@@ -10,7 +10,7 @@ export class UndefinedNode extends Node {
         return gray('undefined', noColor)
     }
 
-    genEncode(_varName: string): string {
+    genEncode(): string {
         return ``
     }
 

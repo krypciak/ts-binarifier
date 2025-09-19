@@ -1,6 +1,6 @@
 import { assert } from '../assert'
 import { yellow } from '../colors'
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export enum NumberType {
     Unsigned = 1,
@@ -68,15 +68,17 @@ export class NumberNode extends Node {
         )
     }
 
-    genEncode(varName: string, indent: number = 0): string {
-        let suffix: string = getLetterFromNumberType(this.type)
-        if (this.type == NumberType.Float) {
-            suffix += `${this.bits}(${varName})`
-        } else {
-            suffix += this.bits <= 8 ? '8' : this.bits <= 16 ? '16' : this.bits <= 24 ? '24' : '32'
-            suffix += `(${varName}, ${this.bits})`
-        }
-        return this.genEncodeWrapOptional(varName, () => `encoder.${suffix}`, indent)
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+        return this.genEncodeWrapOptional(data, config, ({ varName }) => {
+            let suffix: string = getLetterFromNumberType(this.type)
+            if (this.type == NumberType.Float) {
+                suffix += `${this.bits}(${varName})`
+            } else {
+                suffix += this.bits <= 8 ? '8' : this.bits <= 16 ? '16' : this.bits <= 24 ? '24' : '32'
+                suffix += `(${varName}, ${this.bits})`
+            }
+            return `encoder.${suffix}`
+        })
     }
 
     genDecode(): string {

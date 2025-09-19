@@ -1,4 +1,4 @@
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class RecordNode extends Node {
     constructor(
@@ -20,25 +20,24 @@ export class RecordNode extends Node {
         )
     }
 
-    genEncode(varName: string, indent: number = 0): string {
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
         return this.genEncodeWrapOptional(
-            varName,
-            indent =>
+            data,
+            config,
+            ({ varName, indent }) =>
                 `encoder.u8(Object.keys(${varName}).length)\n` +
                 Node.indent(indent) +
                 `for (const [k${indent}, v${indent}] of Object.entries(${varName}) as unknown as [keyof typeof ${varName}, NonNullable<(typeof ${varName})[keyof typeof ${varName}]>][]) {\n` +
                 Node.indent(indent + 1) +
-                `${this.key.genEncode(`k${indent}`, indent + 1)}` +
+                `${this.key.genEncode({ varName: `k${indent}`, indent: indent + 1 }, config)}` +
                 '\n' +
                 Node.indent(indent + 1) +
-                `${this.value.genEncode(`v${indent}`, indent + 1)}` +
+                `${this.value.genEncode({ varName: `v${indent}`, indent: indent + 1 }, config)}` +
                 `\n` +
                 Node.indent(indent) +
-                `}`,
-            indent
+                `}`
         )
     }
-
 
     genDecode(indent: number = 0): string {
         return this.genDecodeWrapOptional(

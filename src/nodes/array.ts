@@ -1,4 +1,4 @@
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 
 export class ArrayNode extends Node {
     constructor(
@@ -12,19 +12,19 @@ export class ArrayNode extends Node {
         return this.type.print(noColor, indent) + '[]' + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(varName: string, indent: number = 0): string {
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
         return this.genEncodeWrapOptional(
-            varName,
-            indent =>
+            data,
+            config,
+            ({ varName, indent }) =>
                 `encoder.u16(${varName}.length)\n` +
                 Node.indent(indent) +
-                `for (const v${indent} of ${varName}) {\n` +
+                `for (const v${indent} of ${data.varName}) {\n` +
                 Node.indent(indent + 1) +
-                `${this.type.genEncode(`v${indent}`, indent + 1)}` +
+                `${this.type.genEncode({ varName: `v${data.indent}`, indent: indent + 1 }, config)}` +
                 `\n` +
                 Node.indent(indent) +
-                `}`,
-            indent
+                `}`
         )
     }
 

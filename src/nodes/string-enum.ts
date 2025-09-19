@@ -1,5 +1,5 @@
 import { gray, green } from '../colors'
-import { Node } from './node'
+import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
 import { NumberNode } from './number'
 
 export class StringEnumNode extends Node {
@@ -25,15 +25,12 @@ export class StringEnumNode extends Node {
         )
     }
 
-    genEncode(varName: string, indent: number = 0): string {
-        return this.genEncodeWrapOptional(
-            varName,
-            () =>
-                this.unionIdNode.genEncode(
-                    `[${this.values.map(str => `'${str}'`).join(', ')}]` + `.indexOf(${varName})`,
-                    indent
-                ),
-            indent
+    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) =>
+            this.unionIdNode.genEncode(
+                { varName: `[${this.values.map(str => `'${str}'`).join(', ')}]` + `.indexOf(${varName})`, indent },
+                config
+            )
         )
     }
 
