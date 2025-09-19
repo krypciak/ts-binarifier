@@ -60,7 +60,7 @@ function genParsingClass({
         `const decoder = new Decoder(buf)\n` +
         Node.indent(2) +
         'return ' +
-        type.genDecode({ config: decodeConfig, indent: 2 }) +
+        type.genDecode({ config: decodeConfig, varCounter: { v: 0 }, indent: 2 }) +
         '\n' +
         Node.indent(1) +
         '}\n' +

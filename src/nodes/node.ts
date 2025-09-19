@@ -2,10 +2,10 @@ import { gray } from '../colors'
 
 declare global {
     interface GenEncodeData {
-        varName: string
-        indent: number
-        varCounter: { v: number }
         config: GenEncodeConfig
+        varCounter: { v: number }
+        indent: number
+        varName: string
     }
     interface GenEncodeConfig {
         asserts?: boolean
@@ -13,6 +13,7 @@ declare global {
 
     interface GenDecodeData {
         config: GenDecodeConfig
+        varCounter: { v: number }
         indent: number
     }
     interface GenDecodeConfig {}
