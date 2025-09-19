@@ -1,13 +1,13 @@
 import { magenta } from '../colors'
 import { Node } from './node'
-import { NumberNode, NumberType } from './number'
 import { StringNode } from './string'
 
 export class JsonNode extends Node {
-    private stringNode = new StringNode(false, new NumberNode(false, 24, NumberType.Unsigned))
+    private stringNode: StringNode
 
-    constructor(optional: boolean | undefined) {
+    constructor(optional: boolean | undefined, maxLength: number = (1 << 24) - 1) {
         super(optional)
+        this.stringNode = new StringNode(false, maxLength)
     }
 
     print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
