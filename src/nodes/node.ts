@@ -39,7 +39,7 @@ export abstract class Node {
             data.indent++
             const str = strFunc(data)
             return (
-                `if (${data.varName} === undefined || ${data.varName} === null) encoder.boolean(false); else {` +
+                `if (${data.varName} === undefined) encoder.boolean(false); else {` +
                 '\n' +
                 Node.indent(data.indent) +
                 `encoder.boolean(true)\n` +
