@@ -62,7 +62,7 @@ export class Decoder {
             }
             bitsLeft -= read
         }
-        if (signed) {
+        if (signed && bitLength != 32) {
             if (num & (1 << (bitLength - 1))) {
                 num -= 1 << bitLength
             }
