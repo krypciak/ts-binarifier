@@ -1,8 +1,7 @@
 {
     "name": "ts-binarifier",
-    "module": "src/index.ts",
+    "version": "1.0.0",
     "type": "module",
-    "private": true,
     "devDependencies": {
         "@types/bun": "latest"
     },
