@@ -6,7 +6,7 @@ export class RecordNode extends Node {
         optional: boolean | undefined,
         public key: Node,
         public value: Node,
-        public sizeNode = new NumberNode(false, 8, NumberType.Signed)
+        public sizeNode = new NumberNode(false, 8, NumberType.Unsigned)
     ) {
         super(optional)
     }
