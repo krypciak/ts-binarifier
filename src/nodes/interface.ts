@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 
 export class InterfaceNode extends Node {
     constructor(
@@ -61,15 +61,15 @@ export class InterfaceNode extends Node {
         }
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) =>
+    genEncode(data: GenEncodeData): string {
+        return this.genEncodeWrapOptional(data, data =>
             Object.entries(this.nodes)
-                .map(([k, v]) => v.genEncode({ varName: varName + this.genPropertyAccess(k), indent }, config))
-                .join('\n' + Node.indent(indent))
+                .map(([k, v]) => v.genEncode({ ...data, varName: data.varName + this.genPropertyAccess(k) }))
+                .join('\n' + Node.indent(data.indent))
         )
     }
 
-    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+    genDecode(data: GenDecodeData): string {
         const indent = data.indent
         return this.genDecodeWrapOptional(
             `{\n` +
@@ -79,7 +79,7 @@ export class InterfaceNode extends Node {
                             Node.indent(indent + 1) +
                             this.genStringProperty(k) +
                             `: ` +
-                            v.genDecode({ indent: indent + 1 }, config)
+                            v.genDecode({ ...data, indent: indent + 1 })
                     )
                     .join(',\n')}` +
                 `\n` +

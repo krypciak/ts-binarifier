@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 
 export class ArrayNode extends Node {
@@ -14,33 +14,31 @@ export class ArrayNode extends Node {
         return this.type.print(noColor, indent) + '[]' + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+    genEncode(data: GenEncodeData): string {
         return this.genEncodeWrapOptional(
             data,
-            config,
-            ({ varName, indent }) =>
-                this.sizeNode.genEncode({ varName: `${varName}.length`, indent }, config) +
+            data =>
+                this.sizeNode.genEncode({ ...data, varName: `${data.varName}.length` }) +
                 '\n' +
-                Node.indent(indent) +
-                `for (const v${indent} of ${data.varName}) {\n` +
-                Node.indent(indent + 1) +
-                `${this.type.genEncode({ varName: `v${data.indent}`, indent: indent + 1 }, config)}` +
+                Node.indent(data.indent) +
+                `for (const v${data.indent} of ${data.varName}) {\n` +
+                Node.indent(data.indent + 1) +
+                `${this.type.genEncode({ ...data, varName: `v${data.indent}`, indent: data.indent + 1 })}` +
                 `\n` +
-                Node.indent(indent) +
+                Node.indent(data.indent) +
                 `}`
         )
     }
 
-    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
-        const indent = data.indent
+    genDecode(data: GenDecodeData): string {
         return this.genDecodeWrapOptional(
             `new Array(` +
-                this.sizeNode.genDecode(data, config) +
+                this.sizeNode.genDecode(data) +
                 `).fill(null).map(_ => (\n` +
-                Node.indent(indent + 1) +
-                `${this.type.genDecode({ indent: indent + 1 }, config)}` +
+                Node.indent(data.indent + 1) +
+                `${this.type.genDecode({ ...data, indent: data.indent + 1 })}` +
                 `\n` +
-                Node.indent(indent) +
+                Node.indent(data.indent) +
                 `))`
         )
     }

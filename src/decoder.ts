@@ -15,7 +15,7 @@ export class Decoder {
         return v != 0
     }
 
-    private bin(bitLength: number): Uint8Array {
+    bin(bitLength: number): Uint8Array {
         const data = new Uint8Array(bitLength / 8)
         let dataI = 0
         let dataOffset = 0
@@ -32,6 +32,7 @@ export class Decoder {
             if (this.bufOffset >= 8) {
                 this.bufOffset -= 8
                 this.bufI++
+                if (this.bufI > this.buf.length) throw new Error('decoder access out of bounds')
             }
             bitsLeft -= read
 
@@ -121,14 +122,5 @@ export class Decoder {
         const v = this.IEEE64ToDouble(arr)
         // console.log('decode f64: ', v)
         return v
-    }
-
-    string() {
-        const bufLen = this.u16()
-        // console.log('decode string len:', len)
-
-        const buf = this.bin(bufLen * 8)
-        const str = new TextDecoder().decode(buf)
-        return str
     }
 }

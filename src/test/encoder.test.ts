@@ -39,15 +39,4 @@ describe('encoder', () => {
         expect(buf[0]).toBe(10)
         expect(buf[1]).toBe(0)
     })
-
-    test('string', () => {
-        const encoder = new Encoder()
-        encoder.string('ab')
-        expect(encoder.bufOffset).toBe(0)
-        const buf = encoder.getBuffer()
-        expect(buf[0]).toBe(2)
-        expect(buf[1]).toBe(0)
-        expect(buf[2]).toBe(97)
-        expect(buf[3]).toBe(98)
-    })
 })

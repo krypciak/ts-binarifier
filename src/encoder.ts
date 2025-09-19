@@ -1,10 +1,8 @@
-import { assert } from './assert'
-
 export class Encoder {
     private buf: number[] = [0]
     bufOffset: number = 0
 
-    private pushData(data: number[] | Uint8Array, bitLength: number = data.length * 8) {
+    pushData(data: number[] | Uint8Array, bitLength: number = data.length * 8) {
         let dataI = 0
         let dataOffset = 0
 
@@ -84,14 +82,6 @@ export class Encoder {
     f64(v: number) {
         // console.log('encode f64:', v)
         return this.pushData(this.doubleToIEEE64(v), 64)
-    }
-
-    string(v: string) {
-        // console.log('encode string:', v, 'len:', v.length)
-        const buf = new TextEncoder().encode(v)
-        assert(buf.length < 65536)
-        this.u16(buf.length)
-        this.pushData(buf)
     }
 
     getBuffer() {

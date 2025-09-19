@@ -100,8 +100,19 @@ describe('encode decode data', () => {
     test('outside of u8', async () => {
         await encodeMultipleThrows<Type13>(path, 'Type13', [256, -1, 4294967296])
     })
+
     type Type14 = i8
     test('outside of i8', async () => {
         await encodeMultipleThrows<Type14>(path, 'Type14', [128, -129, 4294967296, -4294967296])
+    })
+
+    type Type15 = string
+    test('string', async () => {
+        await encodeDecodeDataTestMultiple<Type15>(path, 'Type15', ['hi', 'welcome', ''])
+    })
+
+    type Type16 = string
+    test('string unicode', async () => {
+        await encodeDecodeDataTestMultiple<Type16>(path, 'Type16', ['好hi'])
     })
 })

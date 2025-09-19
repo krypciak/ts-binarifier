@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 
 export class RecordNode extends Node {
@@ -22,34 +22,34 @@ export class RecordNode extends Node {
         )
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
+    genEncode(data: GenEncodeData): string {
         return this.genEncodeWrapOptional(
             data,
-            config,
-            ({ varName, indent }) =>
-                this.sizeNode.genEncode({ varName: `Object.keys(${varName}).length`, indent }, config) +
+            data =>
+                this.sizeNode.genEncode({ ...data, varName: `Object.keys(${data.varName}).length` }) +
                 '\n' +
-                Node.indent(indent) +
-                `for (const [k${indent}, v${indent}] of Object.entries(${varName}) as unknown as [keyof typeof ${varName}, NonNullable<(typeof ${varName})[keyof typeof ${varName}]>][]) {\n` +
-                Node.indent(indent + 1) +
-                `${this.key.genEncode({ varName: `k${indent}`, indent: indent + 1 }, config)}` +
+                Node.indent(data.indent) +
+                `for (const [k${data.indent}, v${data.indent}] of Object.entries(${data.varName})` +
+                ` as unknown as [keyof typeof ${data.varName}, NonNullable<(typeof ${data.varName})[keyof typeof ${data.varName}]>][]) {\n` +
+                Node.indent(data.indent + 1) +
+                `${this.key.genEncode({ ...data, varName: `k${data.indent}`, indent: data.indent + 1 })}` +
                 '\n' +
-                Node.indent(indent + 1) +
-                `${this.value.genEncode({ varName: `v${indent}`, indent: indent + 1 }, config)}` +
+                Node.indent(data.indent + 1) +
+                `${this.value.genEncode({ ...data, varName: `v${data.indent}`, indent: data.indent + 1 })}` +
                 `\n` +
-                Node.indent(indent) +
+                Node.indent(data.indent) +
                 `}`
         )
     }
 
-    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+    genDecode(data: GenDecodeData): string {
         const indent = data.indent
         return this.genDecodeWrapOptional(
             `Object.fromEntries(new Array(` +
-                this.sizeNode.genDecode(data, config) +
+                this.sizeNode.genDecode(data) +
                 `).fill(null).map(_ => [\n` +
                 Node.indent(indent + 1) +
-                `${this.key.genDecode({ indent: indent + 1 }, config)}, ${this.value.genDecode({ indent: indent + 1 }, config)}` +
+                `${this.key.genDecode({ ...data, indent: indent + 1 })}, ${this.value.genDecode({ ...data, indent: indent + 1 })}` +
                 `\n` +
                 Node.indent(indent) +
                 `]))`

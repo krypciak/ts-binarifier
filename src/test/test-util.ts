@@ -5,7 +5,6 @@ import path from 'path'
 import { codeGen, type EncoderDecoder } from '../code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
 import { TypeParser, type TypeParserConfig } from '../type-parser'
-import type { GenDecodeConfig, GenEncodeConfig } from '../nodes/node'
 
 const projectRoot = new URL('../..', import.meta.url).pathname
 
@@ -84,8 +83,6 @@ export async function encodeDecodeDataTestMultiple<T>(
     encodeConfig: GenEncodeConfig = {},
     decodeConfig: GenDecodeConfig = {}
 ) {
-    encodeConfig.asserts ??= true
-
     const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig, encodeConfig, decodeConfig)
     for (const data of dataArray) {
         encodeDecodeDataTest(EncoderDecoder, data)

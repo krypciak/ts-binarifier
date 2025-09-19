@@ -1,7 +1,11 @@
 import { magenta } from '../colors'
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
+import { NumberNode, NumberType } from './number'
+import { StringNode } from './string'
 
 export class JsonNode extends Node {
+    private stringNode = new StringNode(false, new NumberNode(false, 24, NumberType.Unsigned))
+
     constructor(optional: boolean | undefined) {
         super(optional)
     }
@@ -10,11 +14,13 @@ export class JsonNode extends Node {
         return magenta('any', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName }) => `encoder.string(JSON.stringify(${varName}))`)
+    genEncode(data: GenEncodeData): string {
+        return this.genEncodeWrapOptional(data, data =>
+            this.stringNode.genEncode({ ...data, varName: `JSON.stringify(${data.varName})` })
+        )
     }
 
-    genDecode(): string {
-        return `${this.genDecodeWrapOptional(`JSON.parse(decoder.string())`)}`
+    genDecode(data: GenDecodeData): string {
+        return this.genDecodeWrapOptional(`JSON.parse(${this.stringNode.genDecode(data)})`)
     }
 }

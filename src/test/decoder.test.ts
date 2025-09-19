@@ -131,48 +131,4 @@ describe('encode decode', () => {
         expect(decoder.boolean()).toBe(true)
         expect(decoder.f64()).toBe(v1)
     })
-
-    test('string', () => {
-        const encoder = new Encoder()
-        const str = 'abcdefg'
-        encoder.string(str)
-
-        const buf = encoder.getBuffer()
-        const decoder = new Decoder(buf)
-
-        expect(decoder.string()).toBe(str)
-    })
-
-    test('string unicode', () => {
-        const encoder = new Encoder()
-        const str = '好hi'
-        encoder.string(str)
-
-        const buf = encoder.getBuffer()
-        const decoder = new Decoder(buf)
-
-        expect(decoder.string()).toBe(str)
-    })
-
-    test('mix', () => {
-        const encoder = new Encoder()
-        const str1 = 'abcdefg'
-        const str2 = 'client1'
-        const str3 = 'i dont know'
-        const v1 = 1.483294
-        encoder.boolean(true)
-        encoder.string(str1)
-        encoder.string(str2)
-        encoder.f64(v1)
-        encoder.string(str3)
-
-        const buf = encoder.getBuffer()
-        const decoder = new Decoder(buf)
-
-        expect(decoder.boolean()).toBe(true)
-        expect(decoder.string()).toBe(str1)
-        expect(decoder.string()).toBe(str2)
-        expect(decoder.f64()).toBe(v1)
-        expect(decoder.string()).toBe(str3)
-    })
 })

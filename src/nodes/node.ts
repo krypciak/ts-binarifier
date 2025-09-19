@@ -1,17 +1,22 @@
 import { gray } from '../colors'
 
-export interface GenEncodeData {
-    varName: string
-    indent: number
-}
-export interface GenEncodeConfig {
-    asserts?: boolean
-}
+declare global {
+    interface GenEncodeData {
+        varName: string
+        indent: number
+        varNameCounter: number
+        config: GenEncodeConfig
+    }
+    interface GenEncodeConfig {
+        asserts?: boolean
+    }
 
-export interface GenDecodeData {
-    indent: number
+    interface GenDecodeData {
+        config: GenDecodeConfig
+        indent: number
+    }
+    interface GenDecodeConfig {}
 }
-export interface GenDecodeConfig {}
 
 export abstract class Node {
     static jsonVarName = 'json'
@@ -28,33 +33,29 @@ export abstract class Node {
         return this.optional && !ignoreOptional ? ' | ' + gray('undefined', noColor) : ''
     }
 
-    protected genEncodeWrapOptional(
-        { varName, indent }: GenEncodeData,
-        _config: GenEncodeConfig,
-        strFunc: (data: GenEncodeData) => string
-    ) {
+    protected genEncodeWrapOptional(data: GenEncodeData, strFunc: (data: GenEncodeData) => string) {
         if (this.optional) {
-            indent++
-            const str = strFunc({ varName, indent })
+            data.indent++
+            const str = strFunc(data)
             return (
-                `if (${varName} === undefined || ${varName} === null) encoder.boolean(false); else {` +
+                `if (${data.varName} === undefined || ${data.varName} === null) encoder.boolean(false); else {` +
                 '\n' +
-                Node.indent(indent) +
+                Node.indent(data.indent) +
                 `encoder.boolean(true)\n` +
-                Node.indent(indent) +
+                Node.indent(data.indent) +
                 str +
                 '\n' +
-                Node.indent(indent - 1) +
+                Node.indent(data.indent - 1) +
                 '}'
             )
         } else {
-            const str = strFunc({ varName, indent })
+            const str = strFunc(data)
             return str
         }
     }
 
-    protected static genEncodeAssertNot({ varName, indent }: GenEncodeData, { asserts }: GenEncodeConfig, msg: string) {
-        if (!asserts || !varName) return ''
+    protected static genEncodeAssertNot({ varName, indent, config }: GenEncodeData, msg: string) {
+        if (!config.asserts || !varName) return ''
         return `if (${varName}) throw new Error(\`${msg}\`)` + '\n' + Node.indent(indent)
     }
 
@@ -69,6 +70,6 @@ export abstract class Node {
     constructor(public optional: boolean | undefined) {}
 
     abstract print(noColor?: boolean, indent?: number, ignoreOptional?: boolean): string
-    abstract genEncode(data: GenEncodeData, config: GenEncodeConfig): string
-    abstract genDecode(data: GenDecodeData, config: GenDecodeConfig): string
+    abstract genEncode(data: GenEncodeData): string
+    abstract genDecode(data: GenDecodeData): string
 }

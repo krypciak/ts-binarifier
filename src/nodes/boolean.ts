@@ -1,5 +1,5 @@
 import { red } from '../colors'
-import { Node, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 
 export class BooleanNode extends Node {
     constructor(optional: boolean | undefined) {
@@ -10,8 +10,8 @@ export class BooleanNode extends Node {
         return red('boolean', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName }) => `encoder.boolean(${varName})`)
+    genEncode(data: GenEncodeData): string {
+        return this.genEncodeWrapOptional(data, ({ varName }) => `encoder.boolean(${varName})`)
     }
 
     genDecode(): string {

@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 import { assert } from '../assert'
 import { yellow } from '../colors'
 
@@ -77,23 +77,25 @@ export class NumberNode extends Node {
         return `${varName} < ${min} || ${varName} > ${max}`
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) => {
+    genEncode(data: GenEncodeData): string {
+        return this.genEncodeWrapOptional(data, data => {
             let suffix: string = getLetterFromNumberType(this.type)
             if (this.type == NumberType.Float) {
-                suffix += `${this.bits}(${varName})`
+                suffix += `${this.bits}(${data.varName})`
             } else {
                 suffix += this.bits <= 8 ? '8' : this.bits <= 16 ? '16' : this.bits <= 24 ? '24' : '32'
-                suffix += `(${varName}, ${this.bits})`
+                suffix += `(${data.varName}, ${this.bits})`
             }
             return (
-                Node.genEncodeAssertNot({ varName: this.genEncodeRangeCheck(varName), indent }, config, `Number of value: \${${varName}} does not fit into ${this.print(true)}`) +
-                `encoder.${suffix}`
+                Node.genEncodeAssertNot(
+                    { ...data, varName: this.genEncodeRangeCheck(data.varName) },
+                    `Number of value: \${${data.varName}} does not fit into ${this.print(true)}`
+                ) + `encoder.${suffix}`
             )
         })
     }
 
-    genDecode(_data: GenDecodeData, _config: GenDecodeConfig): string {
+    genDecode(_data: GenDecodeData): string {
         let suffix: string = getLetterFromNumberType(this.type)
         if (this.type == NumberType.Float) {
             suffix += `${this.bits}()`

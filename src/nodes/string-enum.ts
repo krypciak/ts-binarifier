@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenDecodeData, type GenEncodeConfig, type GenEncodeData } from './node'
+import { Node } from './node'
 import { NumberNode } from './number'
 import { gray, green } from '../colors'
 
@@ -25,18 +25,18 @@ export class StringEnumNode extends Node {
         )
     }
 
-    genEncode(data: GenEncodeData, config: GenEncodeConfig): string {
-        return this.genEncodeWrapOptional(data, config, ({ varName, indent }) =>
-            this.unionIdNode.genEncode(
-                { varName: `[${this.values.map(str => `'${str}'`).join(', ')}]` + `.indexOf(${varName})`, indent },
-                config
-            )
+    genEncode(data: GenEncodeData): string {
+        return this.genEncodeWrapOptional(data, data =>
+            this.unionIdNode.genEncode({
+                ...data,
+                varName: `[${this.values.map(str => `'${str}'`).join(', ')}]` + `.indexOf(${data.varName})`,
+            })
         )
     }
 
-    genDecode(data: GenDecodeData, config: GenDecodeConfig): string {
+    genDecode(data: GenDecodeData): string {
         return `${this.genDecodeWrapOptional(
-            `[${this.values.map(str => `'${str}'`).join(', ')}]` + `[${this.unionIdNode.genDecode(data, config)}]`
+            `[${this.values.map(str => `'${str}'`).join(', ')}]` + `[${this.unionIdNode.genDecode(data)}]`
         )}`
     }
 }

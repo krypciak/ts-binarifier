@@ -1,4 +1,4 @@
-import { Node, type GenDecodeConfig, type GenEncodeConfig } from './nodes/node'
+import { Node } from './nodes/node'
 import * as path from 'path'
 
 export interface CodeGenConfig {
@@ -48,7 +48,7 @@ function genParsingClass({
         Node.indent(2) +
         `const encoder = new Encoder()\n` +
         Node.indent(2) +
-        type.genEncode({ varName: 'data', indent: 2 }, encodeConfig) +
+        type.genEncode({ config: encodeConfig, varName: 'data', indent: 2, varNameCounter: 0 }) +
         '\n' +
         Node.indent(2) +
         `return encoder.getBuffer()\n` +
@@ -60,7 +60,7 @@ function genParsingClass({
         `const decoder = new Decoder(buf)\n` +
         Node.indent(2) +
         'return ' +
-        type.genDecode({ indent: 2 }, decodeConfig) +
+        type.genDecode({ config: decodeConfig, indent: 2 }) +
         '\n' +
         Node.indent(1) +
         '}\n' +
