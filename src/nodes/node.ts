@@ -5,16 +5,21 @@ declare global {
         config: GenEncodeConfig
         varCounter: { v: number }
         indent: number
+        shared: GenEncodeDecodeShared
+
         varName: string
+        constants: string[]
     }
     interface GenEncodeConfig {
         asserts?: boolean
     }
+    interface GenEncodeDecodeShared {}
 
     interface GenDecodeData {
         config: GenDecodeConfig
         varCounter: { v: number }
         indent: number
+        shared: GenEncodeDecodeShared
     }
     interface GenDecodeConfig {}
 }
