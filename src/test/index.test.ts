@@ -124,7 +124,14 @@ describe('encode decode data', () => {
 
     type Type9 = any
     test('any number', async () => {
-        await encodeDecodeDataTestMultiple<Type9>(path, 'Type9', [1, 'hi'])
+        await encodeDecodeDataTestMultiple<Type9>(path, 'Type9', [
+            //
+            1,
+            'hi',
+            undefined,
+            48329,
+            { lol: 'hi' },
+        ])
     })
 
     type Type10 = [string, string | undefined]

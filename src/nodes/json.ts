@@ -5,8 +5,8 @@ import { StringNode } from './string'
 export class JsonNode extends Node {
     private stringNode: StringNode
 
-    constructor(optional: boolean | undefined, maxLength: number = (1 << 24) - 1) {
-        super(optional)
+    constructor(_optional: boolean | undefined, maxLength: number = (1 << 24) - 1) {
+        super(true)
         this.stringNode = new StringNode(false, maxLength)
     }
 
