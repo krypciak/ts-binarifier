@@ -19,7 +19,7 @@ export class StringEnumNode extends Node {
     ) {
         super(optional)
         if (!noSort) values.sort()
-        this.unionIdNode = NumberNode.optimalForRange(false, 0, values.length)
+        this.unionIdNode = NumberNode.optimalForRange(false, 0, values.length - 1)
     }
 
     print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
