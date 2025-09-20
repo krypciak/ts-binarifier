@@ -5,7 +5,7 @@ export class ArrayNode extends Node {
     constructor(
         optional: boolean | undefined,
         public type: Node,
-        public sizeNode = new NumberNode(false, 16, NumberType.Signed)
+        public sizeNode = new NumberNode(false, 16, NumberType.Unsigned)
     ) {
         super(optional)
     }
