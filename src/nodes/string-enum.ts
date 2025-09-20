@@ -14,10 +14,11 @@ export class StringEnumNode extends Node {
 
     constructor(
         optional: boolean | undefined,
-        public values: string[]
+        public values: string[],
+        noSort: boolean = false
     ) {
         super(optional)
-        values.sort()
+        if (!noSort) values.sort()
         this.unionIdNode = NumberNode.optimalForRange(false, 0, values.length)
     }
 
