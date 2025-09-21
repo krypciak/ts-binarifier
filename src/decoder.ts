@@ -102,24 +102,24 @@ export class Decoder {
         return v
     }
 
-    private IEEE32ToDouble(arr: Uint8Array) {
+    static IEEE32ToDouble(arr: Uint8Array) {
         return new Float32Array(arr.buffer)[0]
     }
 
-    private IEEE64ToDouble(arr: Uint8Array) {
+    static IEEE64ToDouble(arr: Uint8Array) {
         return new Float64Array(arr.buffer)[0]
     }
 
     f32() {
         const arr = this.bin(32)
-        const v = this.IEEE32ToDouble(arr)
+        const v = Decoder.IEEE32ToDouble(arr)
         // console.log('decode f32: ', v)
         return v
     }
 
     f64() {
         const arr = this.bin(64)
-        const v = this.IEEE64ToDouble(arr)
+        const v = Decoder.IEEE64ToDouble(arr)
         // console.log('decode f64: ', v)
         return v
     }

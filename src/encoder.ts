@@ -1,5 +1,5 @@
 export class Encoder {
-    private buf: number[] = [0]
+    buf: number[] = [0]
     bufOffset: number = 0
 
     pushData(data: number[] | Uint8Array, bitLength: number = data.length * 8) {
@@ -58,7 +58,7 @@ export class Encoder {
         this.u32(v, length)
     }
 
-    private doubleToIEEE32(f: number) {
+    static doubleToIEEE32(f: number) {
         const buf = new ArrayBuffer(4)
         const float = new Float32Array(buf)
         const uint = new Uint8Array(buf)
@@ -66,7 +66,7 @@ export class Encoder {
         return uint
     }
 
-    private doubleToIEEE64(f: number) {
+    static doubleToIEEE64(f: number) {
         const buf = new ArrayBuffer(8)
         const float = new Float64Array(buf)
         const uint = new Uint8Array(buf)
@@ -76,12 +76,12 @@ export class Encoder {
 
     f32(v: number) {
         // console.log('encode f32:', v)
-        return this.pushData(this.doubleToIEEE32(v), 32)
+        return this.pushData(Encoder.doubleToIEEE32(v), 32)
     }
 
     f64(v: number) {
         // console.log('encode f64:', v)
-        return this.pushData(this.doubleToIEEE64(v), 64)
+        return this.pushData(Encoder.doubleToIEEE64(v), 64)
     }
 
     getBuffer() {
