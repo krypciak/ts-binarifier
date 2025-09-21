@@ -85,6 +85,10 @@ export class Encoder {
     }
 
     getBuffer() {
-        return new Uint8Array(this.buf)
+        if (this.bufOffset == 0) {
+            return new Uint8Array(this.buf.slice(0, -1))
+        } else {
+            return new Uint8Array(this.buf)
+        }
     }
 }
