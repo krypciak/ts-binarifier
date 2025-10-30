@@ -9,6 +9,8 @@ export class RecordNode extends Node {
         public sizeNode = new NumberNode(false, 8, NumberType.Unsigned)
     ) {
         super(optional)
+        sizeNode.optional = false
+        sizeNode.type = NumberType.Unsigned
     }
 
     print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {

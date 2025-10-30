@@ -83,6 +83,8 @@ export async function encodeDecodeDataTestMultiple<T>(
     encodeConfig: GenEncodeConfig = {},
     decodeConfig: GenDecodeConfig = {}
 ) {
+    encodeConfig.asserts ??= true
+
     const EncoderDecoder = await encodeDecodeDataSetup(filePath, typeName, parserConfig, encodeConfig, decodeConfig)
     for (const data of dataArray) {
         encodeDecodeDataTest(EncoderDecoder, data)

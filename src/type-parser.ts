@@ -25,7 +25,7 @@ export interface TypeParserConfig {
     customNodes?: Record<string, NodeCreateFunction>
 }
 
-function getSpecialLabel(types: ts.Type[]) {
+function getSpecialLabels(types: ts.Type[]) {
     const specialTypes = types.filter(t => {
         if (!(t.flags & ts.TypeFlags.Object)) return false
         const props = t.getProperties()
@@ -36,19 +36,21 @@ function getSpecialLabel(types: ts.Type[]) {
             !value ||
             !ts.isPropertySignature(value) ||
             !value.questionToken ||
-            !value.type ||
-            value.type.kind != ts.SyntaxKind.NeverKeyword
+            !value.type // ||
+            // value.type.kind != ts.SyntaxKind.NeverKeyword
         )
             return false
 
         return true
     })
-    if (specialTypes.length == 0) return {}
+    if (specialTypes.length == 0) return []
 
-    assert(specialTypes.length == 1)
-    const prop = specialTypes[0].getProperties()[0]
-    const specialLabel = prop.name
-    return { specialLabel, specialType: specialTypes[0] }
+    return specialTypes.map(t => {
+        const prop = t.getProperties()[0]
+        const specialLabel = prop.name
+
+        return { specialLabel, specialType: t }
+    })
 }
 
 export function getRecordKeyType(type: ts.Type): ts.Type | undefined {
@@ -63,6 +65,7 @@ function areAllTheSameClass<T>(arr: T[]): boolean {
     return arr.every(t => Object.getPrototypeOf(t) === Object.getPrototypeOf(arr[0]))
 }
 
+
 export class TypeParser {
     defaultFloatBits = 64
 
@@ -75,7 +78,7 @@ export class TypeParser {
         }
     }
 
-    parseToNode(type: ts.Type, indent = 0, isOptional?: boolean): Node {
+    parseToNode(type: ts.Type, indent = 0, isOptional?: boolean, data: { nextRecordSize?: NumberNode } = {}): Node {
         const debug = false
         const spacing = '  '.repeat(indent)
 
@@ -150,8 +153,12 @@ export class TypeParser {
                 return this.parseToNode(truthyType, indent, isOptional)
             }
         } else if (type.isIntersection()) {
-            const { specialLabel, specialType } = getSpecialLabel(type.types)
-            if (specialLabel) {
+            const specialLabels = getSpecialLabels(type.types)
+            if (specialLabels.length > 0) {
+                assert(specialLabels.length == 1)
+                const { specialLabel, specialType } = specialLabels[0]
+                const regularTypes = type.types.filter(t => t != specialType)
+
                 const numberNode = NumberNode.fromName(isOptional, specialLabel)
                 if (numberNode) return numberNode
 
@@ -159,15 +166,20 @@ export class TypeParser {
                     return new JsonNode(isOptional)
                 }
 
+                if (specialLabel == 'recordSize') {
+                    assert(regularTypes.length == 1)
+                    const prop = specialType.getProperties()[0]
+                    const sizeType = this.checker.getTypeOfSymbolAtLocation(prop, prop.valueDeclaration || prop.declarations?.[0]!)
+                    const node = this.parseToNode(sizeType, indent+1)
+                    assert(node instanceof NumberNode)
+
+                    return this.parseToNode(regularTypes[0], indent + 1, isOptional, { nextRecordSize: node })
+                }
+
                 if (this.config.customNodes) {
                     const entry = this.config.customNodes[specialLabel]
                     if (entry) {
-                        return entry(
-                            isOptional,
-                            type.types.filter(t => t != specialType),
-                            this,
-                            indent
-                        )
+                        return entry(isOptional, regularTypes, this, indent)
                     }
                 }
             }
@@ -208,7 +220,7 @@ export class TypeParser {
             assert(valueType)
             const valueNode = this.parseToNode(valueType, indent + 1)
 
-            return new RecordNode(isOptional, keyNode, valueNode)
+            return new RecordNode(isOptional, keyNode, valueNode, data.nextRecordSize)
         } else if (type.symbol && type.symbol.members?.keys().find(m => m.toString() == '__index')) {
             const valueTypes: Node[] = type.symbol.members
                 .entries()
@@ -224,7 +236,7 @@ export class TypeParser {
                 .toArray()
 
             if (areAllTheSameClass(valueTypes)) {
-                return new RecordNode(isOptional, new StringNode(false), valueTypes[0])
+                return new RecordNode(isOptional, new StringNode(false), valueTypes[0], data.nextRecordSize)
             } else {
                 return new JsonNode(isOptional)
             }

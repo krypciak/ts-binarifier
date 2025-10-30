@@ -1,6 +1,7 @@
 import { describe, test } from 'bun:test'
 import { encodeDecodeDataTestMultiple, encodeMultipleThrows } from './test-util'
-import type { f32, i16, i2, i32, i8, nodeAny, u2, u32, u8 } from '../type-aliases'
+import type { f32, i16, i2, i32, i8, nodeAny, RecordSize, u16, u2, u32, u8 } from '../type-aliases'
+import { UndefinedNode } from '../nodes/undefined'
 
 const path = new URL('', import.meta.url).pathname
 
@@ -140,5 +141,19 @@ describe('encode decode data', () => {
             ['das', 'hi'],
             ['lo', undefined],
         ])
+    })
+
+    function recordWithNElements(n: number) {
+        return Object.fromEntries(new Array(n).fill(null).map((_, i) => [i, i]))
+    }
+
+    type Type20 = Record<number, number> & RecordSize<u16>
+    test('record bigger size', async () => {
+        await encodeDecodeDataTestMultiple<Type20>(path, 'Type20', [{}, recordWithNElements(600)])
+    })
+
+    type Type21 = Record<number, number> & RecordSize<u2>
+    test('record smaller size', async () => {
+        await encodeMultipleThrows<Type21>(path, 'Type21', [recordWithNElements(4), recordWithNElements(200)])
     })
 })
