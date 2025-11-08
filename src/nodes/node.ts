@@ -9,6 +9,7 @@ declare global {
 
         varName: string
         constants: string[]
+        imports: string[]
     }
     interface GenEncodeConfig {
         asserts?: boolean

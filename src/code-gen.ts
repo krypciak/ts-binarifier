@@ -38,6 +38,7 @@ function genParsingClass({
     decodeConfig,
 }: CodeGenConfig): string {
     const constants: string[] = []
+    const imports: string[] = []
     const shared: GenEncodeDecodeShared = {}
     const encodeCode = type.genEncode({
         config: encodeConfig,
@@ -45,6 +46,7 @@ function genParsingClass({
         indent: 2,
         varCounter: { v: 0 },
         constants,
+        imports,
         shared: shared,
     })
     const decodeCode = type.genDecode({ config: decodeConfig, varCounter: { v: 0 }, indent: 2, shared })
@@ -53,6 +55,8 @@ function genParsingClass({
         `import { Encoder } from '${encoderPath}'\n` +
         `import { Decoder } from '${decoderPath}'\n` +
         (typeImportPath ? `import type { ${typeShortName} } from '${typeImportPath}'\n` : '') +
+        imports.join('\n') +
+        '\n' +
         '\n' +
         `export class ${className} {\n` +
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
