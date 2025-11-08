@@ -58,13 +58,17 @@ export function getRecordKeyType(type: ts.Type): ts.Type | undefined {
 }
 
 export function getRecordValueType(type: ts.Type): ts.Type | undefined {
-    return type.getStringIndexType() ?? type.getNumberIndexType() ?? type.aliasTypeArguments?.[1]
+    return (
+        type.getStringIndexType() ??
+        type.getNumberIndexType() ??
+        type.aliasTypeArguments?.[1] ??
+        ('constraintType' in type ? (type.constraintType as ts.Type) : undefined)
+    )
 }
 
 function areAllTheSameClass<T>(arr: T[]): boolean {
     return arr.every(t => Object.getPrototypeOf(t) === Object.getPrototypeOf(arr[0]))
 }
-
 
 export class TypeParser {
     defaultFloatBits = 64
@@ -169,8 +173,11 @@ export class TypeParser {
                 if (specialLabel == 'recordSize') {
                     assert(regularTypes.length == 1)
                     const prop = specialType.getProperties()[0]
-                    const sizeType = this.checker.getTypeOfSymbolAtLocation(prop, prop.valueDeclaration || prop.declarations?.[0]!)
-                    const node = this.parseToNode(sizeType, indent+1)
+                    const sizeType = this.checker.getTypeOfSymbolAtLocation(
+                        prop,
+                        prop.valueDeclaration || prop.declarations?.[0]!
+                    )
+                    const node = this.parseToNode(sizeType, indent + 1)
                     assert(node instanceof NumberNode)
 
                     return this.parseToNode(regularTypes[0], indent + 1, isOptional, { nextRecordSize: node })
@@ -215,7 +222,6 @@ export class TypeParser {
             assert(keyType)
             const keyNode = this.parseToNode(keyType, indent + 1)
 
-            deepFind(type, 'gaming')
             const valueType = getRecordValueType(type)
             assert(valueType)
             const valueNode = this.parseToNode(valueType, indent + 1)
