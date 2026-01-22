@@ -215,7 +215,7 @@ export class TypeParser {
         } else if (this.checker.isArrayType(type)) {
             const indexType = type.getNumberIndexType()
             assert(indexType)
-            return new ArrayNode(isOptional, this.parseToNode(indexType, indent + 1))
+            return new ArrayNode(isOptional, this.parseToNode(indexType, indent + 1), data.nextRecordSize)
         } else if (type.symbol?.flags == 2048 && getRecordKeyType(type)) {
             if (debug) console.log(spacing, 'record')
             const keyType = getRecordKeyType(type)
