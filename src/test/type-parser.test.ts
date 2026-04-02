@@ -26,4 +26,16 @@ describe('type parser', () => {
         const { node } = await setupParserAndParseNode(path, 'Type2')
         expect(node).toEqual(new StringEnumNode(false, ['a', 'b', 'c']))
     })
+
+    type Type3 = Record<string, number>
+    test('record', async () => {
+        const { node } = await setupParserAndParseNode(path, 'Type3')
+        expect(node.print(true)).toEqualIgnoringWhitespace('Record<string, f64>')
+    })
+
+    type Type4 = Record<'a' | 'b' | 'c', number>
+    test('record string union key', async () => {
+        const { node } = await setupParserAndParseNode(path, 'Type4')
+        expect(node.print(true)).toEqualIgnoringWhitespace(`Record</* (u2) */ ('a' | 'b' | 'c'), f64>`)
+    })
 })

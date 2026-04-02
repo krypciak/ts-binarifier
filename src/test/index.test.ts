@@ -160,4 +160,23 @@ describe('encode decode data', () => {
     test('array bigger size', async () => {
         await encodeDecodeDataTestMultiple<Type22>(path, 'Type22', [Object.values(recordWithNElements(131072))])
     })
+
+    type PartialRecord<K extends string | number | symbol, T> = { [P in K]?: T }
+    type Type23 = PartialRecord<'a' | 'b' | 'c', number>
+    test('record partial', async () => {
+        await encodeDecodeDataTestMultiple<Type23>(path, 'Type23', [{ a: 1, b: 2 }])
+    })
+
+    type Type24Keys = 'a' | 'b' | 'c'
+    type Type24 = PartialRecord<Type24Keys, number>
+    test('record partial custom keys', async () => {
+        await encodeDecodeDataTestMultiple<Type24>(path, 'Type24', [{ a: 1, b: 2 }])
+    })
+
+    const type25KeysArray = ['a', 'b', 'c'] as const
+    type Type25Keys = (typeof type25KeysArray)[number]
+    type Type25 = PartialRecord<Type25Keys, number>
+    test('record partial custom keys from array', async () => {
+        await encodeDecodeDataTestMultiple<Type25>(path, 'Type25', [{ a: 1, b: 2 }])
+    })
 })
