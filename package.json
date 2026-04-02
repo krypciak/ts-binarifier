@@ -2,6 +2,10 @@
     "name": "ts-binarifier",
     "version": "1.0.0",
     "type": "module",
+    "scripts": {
+        "test": "bun test",
+        "testWatch": "sh -c 'shopt -s globstar; while true; do inotifywait -e modify **/**.ts; sleep 0.1; clear; bun test; done'"
+    },
     "devDependencies": {
         "@types/bun": "latest"
     },
