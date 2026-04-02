@@ -24,11 +24,11 @@ export class StringEnumNode extends Node {
 
     print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
         return (
-            gray(`/* (`) +
+            gray(`/* (`, noColor) +
             this.unionIdNode.print(noColor) +
-            gray(`) */ `) +
+            gray(`) */ `, noColor) +
             (this.values.length > 0 ? '(' : '') +
-            this.values.map(str => green(`'${str}'`), noColor).join(' | ') +
+            this.values.map(str => green(`'${str}'`, noColor)).join(' | ') +
             (this.values.length > 0 ? ')' : '') +
             this.optionalSuffix(ignoreOptional, noColor)
         )
