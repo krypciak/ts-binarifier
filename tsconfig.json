@@ -4,9 +4,14 @@
   ],
   "compilerOptions": {
     // Environment setup & latest features
+    "types": [
+      "bun-types",
+      "node"
+    ],
     "lib": [
       "ESNext"
     ],
+    "rootDir": "./src",
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",

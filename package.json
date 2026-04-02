@@ -7,9 +7,8 @@
         "testWatch": "sh -c 'shopt -s globstar; while true; do inotifywait -e modify **/**.ts; sleep 0.1; clear; bun test; done'"
     },
     "devDependencies": {
-        "@types/bun": "latest"
-    },
-    "peerDependencies": {
-        "typescript": "^5.9.2"
+        "@types/bun": "latest",
+        "@types/node": "^25.5.0",
+        "typescript": "^6.0.2"
     }
 }
