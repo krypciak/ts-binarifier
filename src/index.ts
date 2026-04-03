@@ -1,10 +1,9 @@
-import type { TypeParserConfig } from './type-parser'
 import ts from 'typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
-import { TypeParser } from './type-parser'
+import { TypeParser, type TypeParserConfig } from './type-parser'
 
 export interface Config {
     configs: SingleConfig[]

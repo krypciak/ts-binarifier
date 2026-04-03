@@ -3,12 +3,6 @@ import { NumberNode } from './number'
 import { gray, green } from '../colors'
 import { assert } from '../assert'
 
-declare global {
-    interface GenEncodeDecodeShared {
-        stringUnionTypes?: Record<string, string[]>
-    }
-}
-
 export class StringEnumNode extends Node {
     unionIdNode: NumberNode
 

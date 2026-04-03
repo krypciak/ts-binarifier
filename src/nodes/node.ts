@@ -14,7 +14,9 @@ declare global {
     interface GenEncodeConfig {
         asserts?: boolean
     }
-    interface GenEncodeDecodeShared {}
+    interface GenEncodeDecodeShared {
+        stringUnionTypes?: Record<string, string[]>
+    }
 
     interface GenDecodeData {
         config: GenDecodeConfig
@@ -22,6 +24,7 @@ declare global {
         indent: number
         shared: GenEncodeDecodeShared
     }
+
     interface GenDecodeConfig {}
 }
 
