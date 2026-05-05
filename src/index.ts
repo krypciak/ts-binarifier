@@ -12,7 +12,7 @@ export interface Config {
 export interface SingleConfig {
     projectRoot?: string
     path: string
-    typeType: 'variable' | 'type'
+    typeType: 'type'
     typeName: string
     outPath: string
     outClassName: string
