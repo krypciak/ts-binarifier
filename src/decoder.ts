@@ -1,3 +1,5 @@
+import type { f32, f64, i16, i32, i8, u16, u32, u8 } from './type-aliases'
+
 export class Decoder {
     private bufI: number = 0
     private bufOffset = 0
@@ -70,17 +72,17 @@ export class Decoder {
         return num
     }
 
-    u8() {
+    u8(): u8 {
         const v = this.u(8)
         // console.log('decode u8:', v)
         return v
     }
-    u16() {
+    u16(): u16 {
         const v = this.u(16)
         // console.log('decode u16:', v)
         return v
     }
-    u32() {
+    u32(): u32 {
         const v = this.u(32)
         // console.log('decode u16:', v)
         return v
@@ -89,35 +91,35 @@ export class Decoder {
     i(bitLength: number): number {
         return this.u(bitLength, true)
     }
-    i8() {
+    i8(): i8 {
         const v = this.i(8)
         return v
     }
-    i16() {
+    i16(): i16 {
         const v = this.i(16)
         return v
     }
-    i32() {
+    i32(): i32 {
         const v = this.i(32)
         return v
     }
 
-    static IEEE32ToDouble(arr: Uint8Array) {
+    static IEEE32ToDouble(arr: Uint8Array): f32 {
         return new Float32Array(arr.buffer)[0]
     }
 
-    static IEEE64ToDouble(arr: Uint8Array) {
+    static IEEE64ToDouble(arr: Uint8Array): f64 {
         return new Float64Array(arr.buffer)[0]
     }
 
-    f32() {
+    f32(): f32 {
         const arr = this.bin(32)
         const v = Decoder.IEEE32ToDouble(arr)
         // console.log('decode f32: ', v)
         return v
     }
 
-    f64() {
+    f64(): f64 {
         const arr = this.bin(64)
         const v = Decoder.IEEE64ToDouble(arr)
         // console.log('decode f64: ', v)
