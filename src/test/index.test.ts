@@ -1,8 +1,9 @@
 import { describe, test } from 'bun:test'
 import { encodeDecodeDataTestMultiple, encodeMultipleThrows } from './test-util'
 import type { f32, i16, i2, i32, i8, nodeAny, RecordSize, u16, u2, u24, u32, u8 } from '../type-aliases'
+import { fileURLToPath } from 'url'
 
-const path = new URL('', import.meta.url).pathname
+const path = fileURLToPath(new URL('', import.meta.url))
 
 describe('encode decode data', () => {
     describe('number', () => {

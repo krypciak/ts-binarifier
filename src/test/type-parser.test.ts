@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import { setupParserAndParseNode } from './test-util'
 import { StringEnumNode } from '../nodes/string-enum'
+import { fileURLToPath } from 'url'
 
-const path = new URL('', import.meta.url).pathname
+const path = fileURLToPath(new URL('', import.meta.url))
 
 describe('type parser', () => {
     enum Type1Enum {

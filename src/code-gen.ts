@@ -1,5 +1,6 @@
 import { Node } from './nodes/node'
 import * as path from 'path'
+import { fileURLToPath } from 'url'
 
 export interface CodeGenConfig {
     type: Node
@@ -15,8 +16,8 @@ export interface CodeGenConfig {
 
 export function codeGen(config: CodeGenConfig) {
     const destDir = path.dirname(config.destPath)
-    config.encoderPath ??= './' + path.relative(destDir, new URL('./encoder', import.meta.url).pathname)
-    config.decoderPath ??= './' + path.relative(destDir, new URL('./decoder', import.meta.url).pathname)
+    config.encoderPath ??= './' + path.relative(destDir, fileURLToPath(new URL('./encoder', import.meta.url))).replace(/\\/g, '/')
+    config.decoderPath ??= './' + path.relative(destDir, fileURLToPath(new URL('./decoder', import.meta.url))).replace(/\\/g, '/')
     config.typeImportPath ??= './' + path.relative(destDir, config.typeImportPath)
     const code = genParsingClass(config)
     return code

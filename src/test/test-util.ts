@@ -5,8 +5,9 @@ import path from 'path'
 import { codeGen, type EncoderDecoder } from '../code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
 import { TypeParser, type TypeParserConfig } from '../type-parser'
+import { fileURLToPath } from 'url'
 
-const projectRoot = new URL('../..', import.meta.url).pathname
+const projectRoot = fileURLToPath(new URL('../..', import.meta.url))
 
 let tmpFileCounter = 0
 async function createTempFile(suffix: string): Promise<string> {
@@ -55,7 +56,7 @@ async function encodeDecodeDataSetup<T>(
     })
     await fs.promises.writeFile(outFile, code)
 
-    const genModule = await import(path.relative(new URL('.', import.meta.url).pathname, outFile))
+    const genModule = await import(path.relative(fileURLToPath(new URL('.', import.meta.url)), outFile))
     return genModule.Gen as EncoderDecoder<T>
 }
 

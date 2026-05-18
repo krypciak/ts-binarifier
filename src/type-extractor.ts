@@ -20,6 +20,7 @@ export async function createProgram(projectDir: string) {
 }
 
 export function getFile(program: ts.Program, typesForFile: string) {
+    typesForFile = typesForFile.replace(/\\/g, '/') // fix for windows
     const file = program.getSourceFiles().find(file => file.fileName.endsWith(typesForFile))
     assert(file, 'file not found')
     return file
