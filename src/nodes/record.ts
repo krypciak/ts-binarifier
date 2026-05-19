@@ -28,12 +28,20 @@ export class RecordNode extends Node {
         return this.genEncodeWrapOptional(data, data => {
             const keyVar = `k${data.varCounter.v++}`
             const valueVar = `v${data.varCounter.v++}`
+            const recordType = `Record${data.varCounter.v++}`
+            const recordKeyType = `RecordKey${data.varCounter.v++}`
             return (
                 this.sizeNode.genEncode({ ...data, varName: `Object.keys(${data.varName}).length` }) +
                 '\n' +
                 Node.indent(data.indent) +
+                `type ${recordType} = Omit<NonNullable<typeof ${data.varName}>, 'recordSize'>` +
+                '\n' +
+                Node.indent(data.indent) +
+                `type ${recordKeyType} = keyof ${recordType}` +
+                '\n' +
+                Node.indent(data.indent) +
                 `for (const [${keyVar}, ${valueVar}] of Object.entries(${data.varName})` +
-                ` as unknown as [keyof typeof ${data.varName}, NonNullable<(typeof ${data.varName})[keyof typeof ${data.varName}]>][]) {\n` +
+                ` as unknown as [${recordKeyType}, NonNullable<${recordType}[${recordKeyType}]>][]) {\n` +
                 Node.indent(data.indent + 1) +
                 `${this.key.genEncode({ ...data, varName: keyVar, indent: data.indent + 1 })}` +
                 '\n' +
