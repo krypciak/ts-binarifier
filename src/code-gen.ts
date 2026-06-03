@@ -63,7 +63,7 @@ function genParsingClass({
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
         (constants.length > 0 ? '\n\n' : '') +
         Node.indent(1) +
-        `static encode(data: ${typeShortName}): Uint8Array {\n` +
+        `static encode(data: ${typeShortName}): Uint8Array<ArrayBuffer> {\n` +
         Node.indent(2) +
         `const encoder = new Encoder()\n` +
         Node.indent(2) +

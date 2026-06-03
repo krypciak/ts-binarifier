@@ -84,7 +84,7 @@ export class Encoder {
         return this.pushData(Encoder.doubleToIEEE64(v), 64)
     }
 
-    getBuffer(): Uint8Array {
+    getBuffer(): Uint8Array<ArrayBuffer> {
         if (this.bufOffset == 0) {
             return new Uint8Array(this.buf.slice(0, -1))
         } else {
