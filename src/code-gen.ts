@@ -1,6 +1,7 @@
 import { Node } from './nodes/node'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { createHash } from 'crypto'
 
 export interface CodeGenConfig {
     type: Node
@@ -16,8 +17,10 @@ export interface CodeGenConfig {
 
 export function codeGen(config: CodeGenConfig) {
     const destDir = path.dirname(config.destPath)
-    config.encoderPath ??= './' + path.relative(destDir, fileURLToPath(new URL('./encoder', import.meta.url))).replace(/\\/g, '/')
-    config.decoderPath ??= './' + path.relative(destDir, fileURLToPath(new URL('./decoder', import.meta.url))).replace(/\\/g, '/')
+    config.encoderPath ??=
+        './' + path.relative(destDir, fileURLToPath(new URL('./encoder', import.meta.url))).replace(/\\/g, '/')
+    config.decoderPath ??=
+        './' + path.relative(destDir, fileURLToPath(new URL('./decoder', import.meta.url))).replace(/\\/g, '/')
     config.typeImportPath ??= './' + path.relative(destDir, config.typeImportPath)
     const code = genParsingClass(config)
     return code
@@ -26,6 +29,10 @@ export function codeGen(config: CodeGenConfig) {
 export interface EncoderDecoder<T = unknown> {
     encode(data: T): Uint8Array
     decode(buf: Uint8Array): T
+}
+
+function sha256(str: string) {
+    return createHash('sha256').update(str).digest('base64')
 }
 
 function genParsingClass({
@@ -51,6 +58,7 @@ function genParsingClass({
         shared: shared,
     })
     const decodeCode = type.genDecode({ config: decodeConfig, varCounter: { v: 0 }, indent: 2, shared })
+    const codeHash = sha256(encodeCode + decodeCode)
 
     return (
         `import { Encoder } from '${encoderPath}'\n` +
@@ -60,6 +68,8 @@ function genParsingClass({
         '\n' +
         '\n' +
         `export class ${className} {\n` +
+        Node.indent(1) +
+        `static codeHash = '${codeHash}'\n` +
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
         (constants.length > 0 ? '\n\n' : '') +
         Node.indent(1) +
