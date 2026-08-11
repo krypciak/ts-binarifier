@@ -3,12 +3,12 @@ import { NumberNode } from './number'
 import { gray, green } from '../colors'
 import { assert } from '../assert'
 
-export class StringEnumNode extends Node {
+export class EnumNode<T extends string | number | boolean> extends Node {
     unionIdNode: NumberNode
 
     constructor(
         optional: boolean | undefined,
-        public values: string[],
+        public values: T[],
         noSort: boolean = false
     ) {
         super(optional)
@@ -29,21 +29,22 @@ export class StringEnumNode extends Node {
     }
 
     private getUnionVarName(data: GenEncodeData | GenDecodeData): string | undefined {
-        data.shared.stringUnionTypes ??= {}
-        for (const varName in data.shared.stringUnionTypes) {
-            const arr = data.shared.stringUnionTypes[varName]
+        data.shared.unionTypes ??= {}
+        for (const varName in data.shared.unionTypes) {
+            const arr = data.shared.unionTypes[varName]
             if (arr.length == this.values.length && arr.values().every((v, i) => v == this.values[i])) {
                 return varName
             }
         }
     }
+
     private createUnionVarName(data: GenEncodeData): string {
-        const varName = `stringUnion${data.varCounter.v++}`
-        const valuesStrArr = `[${this.values.map(str => `'${str}'`).join(', ')}]`
+        const varName = `union${data.varCounter.v++}`
+        const valuesStrArr = `[${this.values.map(v => (typeof v == 'string' ? `'${v}'` : v)).join(', ')}]`
         data.constants.push(`${varName} = ${valuesStrArr} as const`)
 
         const thisVarName = 'this.' + varName
-        data.shared.stringUnionTypes![thisVarName] = this.values
+        data.shared.unionTypes![thisVarName] = this.values
         return thisVarName
     }
 

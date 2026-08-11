@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { setupParserAndParseNode } from './test-util'
-import { StringEnumNode } from '../nodes/string-enum'
+import { EnumNode } from '../nodes/enum'
 import { fileURLToPath } from 'url'
 
 const path = fileURLToPath(new URL('', import.meta.url))
@@ -25,7 +25,7 @@ describe('type parser', () => {
     type Type2 = 'a' | 'b' | 'c'
     test('string union', async () => {
         const { node } = await setupParserAndParseNode(path, 'Type2')
-        expect(node).toEqual(new StringEnumNode(false, ['a', 'b', 'c']))
+        expect(node).toEqual(new EnumNode(false, ['a', 'b', 'c']))
     })
 
     type Type3 = Record<string, number>

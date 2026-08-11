@@ -15,7 +15,7 @@ declare global {
         asserts?: boolean
     }
     interface GenEncodeDecodeShared {
-        stringUnionTypes?: Record<string, string[]>
+        unionTypes?: Record<string, (string | number | boolean)[]>
     }
 
     interface GenDecodeData {

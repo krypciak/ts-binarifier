@@ -9,7 +9,7 @@ import { InterfaceNode } from './nodes/interface'
 import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
-import { StringEnumNode } from './nodes/string-enum'
+import { EnumNode } from './nodes/enum'
 
 export type NodeCreateFunction = (
     optional: boolean | undefined,
@@ -68,6 +68,10 @@ export function getRecordValueType(type: ts.Type): ts.Type | undefined {
 
 function areAllTheSameClass<T>(arr: T[]): boolean {
     return arr.every(t => Object.getPrototypeOf(t) === Object.getPrototypeOf(arr[0]))
+}
+
+function getPropType(checker: ts.TypeChecker, prop: ts.Symbol): ts.Type {
+    return checker.getTypeOfSymbolAtLocation(prop, prop.valueDeclaration || prop.declarations?.[0]!)
 }
 
 export class TypeParser {
@@ -132,17 +136,16 @@ export class TypeParser {
                 }
                 {
                     /* merge number literals */
-                    let numberType = truthyTypes.find(t => t.flags & ts.TypeFlags.NumberLiteral)
-                    if (numberType) {
-                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.NumberLiteral))
-                        truthyTypes.push(numberType)
+                    if (truthyTypes.every(t => t.isNumberLiteral())) {
+                        const values = truthyTypes.map(t => t.value)
+                        return new EnumNode(isOptional, values)
                     }
                 }
                 {
                     /* merge string literals */
                     if (truthyTypes.every(t => t.isStringLiteral())) {
-                        const values = truthyTypes.map(t => (t as ts.StringLiteralType).value)
-                        return new StringEnumNode(isOptional, values)
+                        const values = truthyTypes.map(t => t.value)
+                        return new EnumNode(isOptional, values)
                     }
                 }
 
@@ -173,10 +176,7 @@ export class TypeParser {
                 if (specialLabel == 'recordSize') {
                     assert(regularTypes.length == 1)
                     const prop = specialType.getProperties()[0]
-                    const sizeType = this.checker.getTypeOfSymbolAtLocation(
-                        prop,
-                        prop.valueDeclaration || prop.declarations?.[0]!
-                    )
+                    const sizeType = getPropType(this.checker, prop)
                     const node = this.parseToNode(sizeType, indent + 1)
                     assert(node instanceof NumberNode)
 
@@ -257,10 +257,7 @@ export class TypeParser {
             if (debug) console.log(spacing, 'properties:')
             const nodes = Object.fromEntries(
                 props.map(p => {
-                    const propType = this.checker.getTypeOfSymbolAtLocation(
-                        p,
-                        p.valueDeclaration || p.declarations?.[0]!
-                    )
+                    const propType = getPropType(this.checker, p)
                     return [p.name, this.parseToNode(propType, indent + 1)]
                 })
             )
@@ -314,7 +311,7 @@ export function printType(type: ts.Type | undefined, checker: ts.TypeChecker = (
         if (props.length) {
             console.log(spacing + 'Properties:')
             props.forEach(p => {
-                const propType = checker.getTypeOfSymbolAtLocation(p, p.valueDeclaration || p.declarations?.[0]!)
+                const propType = getPropType(checker, p)
                 console.log(spacing + `  ${p.name}:`)
                 printType(propType, checker, indent + 2)
             })

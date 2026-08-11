@@ -60,6 +60,11 @@ describe('encode decode data', () => {
         test('i16', async () => {
             await encodeDecodeDataTestMultiple<Type18>(path, 'Type18', [-1, -4])
         })
+
+        type Type27 = 1 | 2 | 3
+        test('union', async () => {
+            await encodeDecodeDataTestMultiple<Type27>(path, 'Type27', [3, 1, 2])
+        })
     })
 
     describe('string', () => {
