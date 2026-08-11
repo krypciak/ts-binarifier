@@ -12,7 +12,7 @@ declare global {
         varCounter: { v: number }
         indent: number
 
-        functions: FunctionConfig[]
+        functions: Record<string, FunctionConfig>
     }
     interface GenEncodeData extends GenDataBase {
         config: GenEncodeConfig

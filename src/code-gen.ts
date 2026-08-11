@@ -2,7 +2,6 @@ import { Node } from './nodes/node'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
-import { decode, encode } from 'punycode'
 
 export interface CodeGenConfig {
     type: Node
@@ -72,7 +71,7 @@ function genParsingClass({
     const constants: string[] = []
     const imports: string[] = []
     const shared: GenEncodeDecodeShared = {}
-    const encodeFunctions: FunctionConfig[] = []
+    const encodeFunctions: Record<string, FunctionConfig> = {}
     const encodeCode = type.genEncode({
         config: encodeConfig,
         varName: 'data',
@@ -83,7 +82,7 @@ function genParsingClass({
         imports,
         shared: shared,
     })
-    const decodeFunctions: FunctionConfig[] = []
+    const decodeFunctions: Record<string, FunctionConfig> = {}
     const decodeCode = type.genDecode({
         config: decodeConfig,
         varCounter: { v: 0 },
@@ -100,7 +99,7 @@ function genParsingClass({
         returnType: 'Uint8Array<ArrayBuffer>',
         body: `const encoder = new Encoder()\n` + `${encodeCode}\n` + `return encoder.getBuffer()`,
     }
-    encodeFunctions.push(mainEncodeFunction)
+    encodeFunctions[mainEncodeFunction.name] = mainEncodeFunction
 
     const mainDecodeFunction: FunctionConfig = {
         public: true,
@@ -109,7 +108,7 @@ function genParsingClass({
         returnType: typeShortName,
         body: `const decoder = new Decoder(buf)\n` + 'return ' + decodeCode,
     }
-    decodeFunctions.push(mainDecodeFunction)
+    decodeFunctions[mainDecodeFunction.name] = mainDecodeFunction
 
     return (
         `import { Encoder } from '${encoderPath}'\n` +
@@ -123,9 +122,13 @@ function genParsingClass({
         `static codeHash = '${codeHash}'\n` +
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
         (constants.length > 0 ? '\n\n' : '') +
-        encodeFunctions.map(config => functionConfigToString(config, 1)).join('\n') +
+        Object.values(encodeFunctions)
+            .map(config => functionConfigToString(config, 1))
+            .join('\n') +
         '\n' +
-        decodeFunctions.map(config => functionConfigToString(config, 1)).join('\n') +
+        Object.values(decodeFunctions)
+            .map(config => functionConfigToString(config, 1))
+            .join('\n') +
         '}\n'
     )
 }

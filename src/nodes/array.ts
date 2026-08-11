@@ -46,7 +46,7 @@ export class ArrayNode extends Node {
                 `}\n` +
                 `return array`,
         }
-        data.functions.push(funcConfig)
+        data.functions[funcConfig.name] = funcConfig
 
         return this.genDecodeWrapOptional(`this.` + funcConfig.name + `(decoder)`)
     }
