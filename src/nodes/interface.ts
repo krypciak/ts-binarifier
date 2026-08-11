@@ -8,10 +8,10 @@ export class InterfaceNode extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+    static print(nodes: Record<string, Node>, noColor?: boolean, indent: number = 0) {
         return (
             '{\n' +
-            Object.entries(this.nodes)
+            Object.entries(nodes)
                 .map(
                     ([k, v]) =>
                         Node.indent(indent + 1) +
@@ -23,12 +23,15 @@ export class InterfaceNode extends Node {
                 .join(`,\n`) +
             '\n' +
             Node.indent(indent) +
-            '}' +
-            this.optionalSuffix(ignoreOptional, noColor)
+            '}'
         )
     }
 
-    isStringQuotingNeeded(key: string): boolean {
+    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+        return InterfaceNode.print(this.nodes, noColor, indent) + this.optionalSuffix(ignoreOptional, noColor)
+    }
+
+    static isStringQuotingNeeded(key: string): boolean {
         const identifierRegex = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
         // prettier-ignore
@@ -45,7 +48,7 @@ export class InterfaceNode extends Node {
         return !canUseDotNotation
     }
 
-    genPropertyAccess(key: string): string {
+    static genPropertyAccess(key: string): string {
         if (this.isStringQuotingNeeded(key)) {
             return `['${key}']`
         } else {
@@ -53,7 +56,7 @@ export class InterfaceNode extends Node {
         }
     }
 
-    genStringProperty(key: string): string {
+    static genStringProperty(key: string): string {
         if (this.isStringQuotingNeeded(key)) {
             return `'${key}'`
         } else {
@@ -64,7 +67,7 @@ export class InterfaceNode extends Node {
     genEncode(data: GenEncodeData): string {
         return this.genEncodeWrapOptional(data, data =>
             Object.entries(this.nodes)
-                .map(([k, v]) => v.genEncode({ ...data, varName: data.varName + this.genPropertyAccess(k) }))
+                .map(([k, v]) => v.genEncode({ ...data, varName: data.varName + InterfaceNode.genPropertyAccess(k) }))
                 .join('\n' + Node.indent(data.indent))
         )
     }
@@ -77,7 +80,7 @@ export class InterfaceNode extends Node {
                     .map(
                         ([k, v]) =>
                             Node.indent(indent + 1) +
-                            this.genStringProperty(k) +
+                            InterfaceNode.genStringProperty(k) +
                             `: ` +
                             v.genDecode({ ...data, indent: indent + 1 })
                     )
