@@ -258,6 +258,7 @@ export class TypeParser {
                 const sizeType = getPropType(this.checker, prop)
                 const node = this.parseToNode(sizeType, indent + 1)
                 assert(node instanceof NumberNode)
+                node.optional = false
 
                 return this.parseToNode(regularTypes[0], indent + 1, isOptional, { nextRecordSize: node })
             }
