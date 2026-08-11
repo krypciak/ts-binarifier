@@ -15,32 +15,39 @@ export class ArrayNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        return this.genEncodeWrapOptional(data, data => {
-            const valueVar = `v${data.varCounter.v++}`
-            return (
-                this.sizeNode.genEncode({ ...data, varName: `${data.varName}.length` }) +
+        const valueVar = `v${data.varCounter.v++}`
+        const funcConfig = getOrDefineFunction(data, {
+            name: 'encodeArray' + data.varCounter.v++,
+            arguments: ['encoder: Encoder, array: any'],
+            body:
+                this.sizeNode.genEncode({ ...data, varName: `array.length`, indent: 0 }) +
                 '\n' +
-                Node.indent(data.indent) +
-                `for (const ${valueVar} of ${data.varName}) {\n` +
-                Node.indent(data.indent + 1) +
-                `${this.type.genEncode({ ...data, varName: valueVar, indent: data.indent + 1 })}` +
+                `for (const ${valueVar} of array) {\n` +
+                Node.indent(1) +
+                `${this.type.genEncode({ ...data, varName: valueVar, indent: 1 })}` +
                 `\n` +
-                Node.indent(data.indent) +
-                `}`
-            )
+                `}`,
         })
+
+        return this.genEncodeWrapOptional(data, data => `this.` + funcConfig.name + `(encoder, ${data.varName})`)
     }
 
     genDecode(data: GenDecodeData): string {
-        return this.genDecodeWrapOptional(
-            `new Array(` +
-                this.sizeNode.genDecode(data) +
-                `).fill(null).map(_ => (\n` +
-                Node.indent(data.indent + 1) +
-                `${this.type.genDecode({ ...data, indent: data.indent + 1 })}` +
-                `\n` +
-                Node.indent(data.indent) +
-                `))`
-        )
+        const funcConfig: FunctionConfig = {
+            name: 'decodeArray' + data.varCounter.v++,
+            arguments: ['decoder: Decoder'],
+            body:
+                `const len = ${this.sizeNode.genDecode(data)}\n` +
+                `const array = new Array(len)\n` +
+                `for (let i = 0; i < len; i++) {\n` +
+                Node.indent(1) +
+                `array[i] = ` +
+                `${this.type.genDecode({ ...data, indent: 1 })}\n` +
+                `}\n` +
+                `return array`,
+        }
+        data.functions.push(funcConfig)
+
+        return this.genDecodeWrapOptional(`this.` + funcConfig.name + `(decoder)`)
     }
 }

@@ -76,7 +76,7 @@ export class UnionNode extends Node {
         }
         data.functions.push(funcConfig)
 
-        return this.genEncodeWrapOptional(data, data => 'this.' + funcConfig.name + `(encoder, ${data.varName})`)
+        return this.genEncodeWrapOptional(data, data => `this.` + funcConfig.name + `(encoder, ${data.varName})`)
     }
 
     genDecode(data: GenDecodeData): string {
@@ -102,6 +102,6 @@ export class UnionNode extends Node {
         }
         data.functions.push(funcConfig)
 
-        return this.genDecodeWrapOptional('this.' + funcConfig.name + `(decoder)`)
+        return this.genDecodeWrapOptional(`this.` + funcConfig.name + `(decoder)`)
     }
 }
