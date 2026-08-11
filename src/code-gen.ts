@@ -2,6 +2,7 @@ import { Node } from './nodes/node'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
+import { decode, encode } from 'punycode'
 
 export interface CodeGenConfig {
     type: Node
@@ -35,6 +36,29 @@ function sha256(str: string) {
     return createHash('sha256').update(str).digest('base64')
 }
 
+function functionConfigToString(config: FunctionConfig, indent: number): string {
+    return (
+        Node.indent(indent) +
+        (config.public ? '' : 'private ') +
+        `static ` +
+        config.name +
+        `(` +
+        config.arguments.join(', ') +
+        `)` +
+        (config.returnType ? `: ` + config.returnType : '') +
+        ` {\n` +
+        config.body
+            .split('\n')
+            .map(l => l.trimEnd())
+            .filter(Boolean)
+            .map(l => Node.indent(indent + 1) + l)
+            .join('\n') +
+        '\n' +
+        Node.indent(indent) +
+        `}\n`
+    )
+}
+
 function genParsingClass({
     type,
     className,
@@ -48,17 +72,44 @@ function genParsingClass({
     const constants: string[] = []
     const imports: string[] = []
     const shared: GenEncodeDecodeShared = {}
+    const encodeFunctions: FunctionConfig[] = []
     const encodeCode = type.genEncode({
         config: encodeConfig,
         varName: 'data',
         indent: 2,
+        functions: encodeFunctions,
         varCounter: { v: 0 },
         constants,
         imports,
         shared: shared,
     })
-    const decodeCode = type.genDecode({ config: decodeConfig, varCounter: { v: 0 }, indent: 2, shared })
+    const decodeFunctions: FunctionConfig[] = []
+    const decodeCode = type.genDecode({
+        config: decodeConfig,
+        varCounter: { v: 0 },
+        indent: 2,
+        functions: decodeFunctions,
+        shared,
+    })
     const codeHash = sha256(encodeCode + decodeCode)
+
+    const mainEncodeFunction: FunctionConfig = {
+        public: true,
+        name: 'encode',
+        arguments: [`data: ${typeShortName}`],
+        returnType: 'Uint8Array<ArrayBuffer>',
+        body: `const encoder = new Encoder()\n` + `${encodeCode}\n` + `return encoder.getBuffer()`,
+    }
+    encodeFunctions.push(mainEncodeFunction)
+
+    const mainDecodeFunction: FunctionConfig = {
+        public: true,
+        name: 'decode',
+        arguments: [`buf: Uint8Array`],
+        returnType: typeShortName,
+        body: `const decoder = new Decoder(buf)\n` + 'return ' + decodeCode,
+    }
+    decodeFunctions.push(mainDecodeFunction)
 
     return (
         `import { Encoder } from '${encoderPath}'\n` +
@@ -72,27 +123,9 @@ function genParsingClass({
         `static codeHash = '${codeHash}'\n` +
         constants.map(str => Node.indent(1) + 'private static ' + str).join('\n') +
         (constants.length > 0 ? '\n\n' : '') +
-        Node.indent(1) +
-        `static encode(data: ${typeShortName}): Uint8Array<ArrayBuffer> {\n` +
-        Node.indent(2) +
-        `const encoder = new Encoder()\n` +
-        Node.indent(2) +
-        encodeCode +
+        encodeFunctions.map(config => functionConfigToString(config, 1)).join('\n') +
         '\n' +
-        Node.indent(2) +
-        `return encoder.getBuffer()\n` +
-        Node.indent(1) +
-        '}\n\n' +
-        Node.indent(1) +
-        `static decode(buf: Uint8Array): ${typeShortName} {\n` +
-        Node.indent(2) +
-        `const decoder = new Decoder(buf)\n` +
-        Node.indent(2) +
-        'return ' +
-        decodeCode +
-        '\n' +
-        Node.indent(1) +
-        '}\n' +
+        decodeFunctions.map(config => functionConfigToString(config, 1)).join('\n') +
         '}\n'
     )
 }
