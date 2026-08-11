@@ -10,6 +10,7 @@ import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
 import { EnumNode } from './nodes/enum'
+import { UnionNode } from './nodes/union'
 import { LiteralNode } from './nodes/literal'
 
 export type NodeCreateFunction = (
@@ -165,6 +166,74 @@ export class TypeParser {
                     return new BooleanNode(isOptional)
                 }
 
+                if (truthyTypes.every(t => t.symbol && t.getProperties().length > 0)) {
+                    const propertyNamesSetArr = truthyTypes.map(t => new Set(t.getProperties().map(s => s.name)))
+                    const commonUnionKeys = propertyNamesSetArr.reduce(
+                        (acc, v) => acc.intersection(v),
+                        propertyNamesSetArr[0]
+                    )
+                    if (commonUnionKeys.size > 1)
+                        throw new Error(`union has more than 1 common keys: [${[...commonUnionKeys].join(', ')}]`)
+
+                    if (commonUnionKeys.size == 1) {
+                        const commonUnionKey = commonUnionKeys.values().next().value!
+                        if (debug) console.log(spacing, 'commonUnionKey:', commonUnionKey)
+
+                        const propTypes = truthyTypes.map(t =>
+                            t.getProperties().map(s => ({ symbol: s, type: getPropType(this.checker, s) }))
+                        )
+                        const commonUnionKeyTypes = propTypes.map(
+                            arr => arr.find(({ symbol }) => symbol.name == commonUnionKey)!.type
+                        )
+
+                        const isBoolUnion = commonUnionKeyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)
+                        if (!commonUnionKeyTypes.every(t => t.isLiteral()) && !isBoolUnion) {
+                            if (debug) {
+                                for (const type of commonUnionKeyTypes) printType(type)
+                            }
+                            throw new Error(`not all values of union with common key: ${commonUnionKey} are literals`)
+                        }
+                        const commonUnionKeyValues = commonUnionKeyTypes.map(t => getLiteralValue(t)!)
+
+                        if (!commonUnionKeyValues.every(v => typeof v !== commonUnionKeyValues[0])) {
+                            if (debug) {
+                                for (const type of commonUnionKeyTypes) printType(type)
+                            }
+                            throw new Error(
+                                `not all values of union with common key: ${commonUnionKey} are the same type`
+                            )
+                        }
+                        if (!commonUnionKeyValues.every(v => typeof v !== 'object')) {
+                            throw new Error(`union with common key: ${commonUnionKey} values of bigint not supported`)
+                        }
+                        const commonUnionKeyNode = new EnumNode(false, commonUnionKeyValues, true)
+
+                        const dataNodes = Object.fromEntries(
+                            propTypes.map(
+                                (arr, i) =>
+                                    [
+                                        commonUnionKeyValues[i],
+                                        new InterfaceNode(
+                                            false,
+                                            Object.fromEntries(
+                                                arr
+                                                    .filter(({ symbol }) => symbol.name != commonUnionKey)
+                                                    .map(
+                                                        ({ symbol, type }) =>
+                                                            [symbol.name, this.parseToNode(type, indent + 1)] as const
+                                                    )
+                                            )
+                                        ),
+                                    ] as const
+                            )
+                        )
+
+                        return new UnionNode(isOptional, commonUnionKey, commonUnionKeyNode, dataNodes)
+                    }
+                }
+                printType(truthyType)
+                if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
+                throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
             } else {
                 return this.parseToNode(truthyType, indent, isOptional)
             }

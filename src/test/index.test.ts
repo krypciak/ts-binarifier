@@ -212,4 +212,42 @@ describe('encode decode data', () => {
     test('record partial custom keys from array', async () => {
         await encodeDecodeDataTestMultiple<Type25>(path, 'Type25', [{ a: 1, b: 2 }])
     })
+
+    type Type26 = { type: 'a' } | { type: 'b' }
+    test('object union with string key no values', async () => {
+        await encodeDecodeDataTestMultiple<Type26>(path, 'Type26', [{ type: 'a' }, { type: 'b' }])
+    })
+
+    type Type28 = { type: 'a'; hi: boolean } | { type: 'b'; bye: number }
+    test('object union with string key with values', async () => {
+        await encodeDecodeDataTestMultiple<Type28>(path, 'Type28', [
+            { type: 'a', hi: false },
+            { type: 'b', bye: 42 },
+        ])
+    })
+
+    type Type29 = { type: 1; hi: boolean } | { type: 2; bye: number }
+    test('object union with number key with values', async () => {
+        await encodeDecodeDataTestMultiple<Type29>(path, 'Type29', [
+            { type: 1, hi: true },
+            { type: 1, hi: false },
+            { type: 2, bye: 2137 },
+        ])
+    })
+
+    type Type30 = { type: true; hi: boolean } | { type: false; bye: number }
+    test('object union with boolean key with values first true', async () => {
+        await encodeDecodeDataTestMultiple<Type30>(path, 'Type30', [
+            { type: true, hi: true },
+            { type: false, bye: 2137 },
+        ])
+    })
+
+    type Type36 = { type: false; hi: boolean } | { type: true; bye: number }
+    test('object union with boolean key with values first false', async () => {
+        await encodeDecodeDataTestMultiple<Type36>(path, 'Type36', [
+            { type: false, hi: true },
+            { type: true, bye: 48 },
+        ])
+    })
 })
