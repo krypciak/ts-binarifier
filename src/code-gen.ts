@@ -1,7 +1,7 @@
 import { Node } from './nodes/node'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { createHash } from 'crypto'
+import { sha256 } from './code-gen-function-cache'
 
 export interface CodeGenConfig {
     type: Node
@@ -29,10 +29,6 @@ export function codeGen(config: CodeGenConfig) {
 export interface EncoderDecoder<T = unknown> {
     encode(data: T): Uint8Array
     decode(buf: Uint8Array): T
-}
-
-function sha256(str: string) {
-    return createHash('sha256').update(str).digest('base64')
 }
 
 function functionConfigToString(config: FunctionConfig, indent: number): string {
@@ -77,6 +73,7 @@ function genParsingClass({
         varName: 'data',
         indent: 0,
         functions: encodeFunctions,
+        functionHashToName: {},
         varCounter: { v: 0 },
         constants,
         imports,
@@ -88,6 +85,7 @@ function genParsingClass({
         varCounter: { v: 0 },
         indent: 0,
         functions: decodeFunctions,
+        functionHashToName: {},
         shared,
     })
     const codeHash = sha256(encodeCode + decodeCode)

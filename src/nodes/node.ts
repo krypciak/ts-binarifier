@@ -12,6 +12,7 @@ declare global {
         varCounter: { v: number }
         indent: number
 
+        functionHashToName: Record<string, string>
         functions: Record<string, FunctionConfig>
     }
     interface GenEncodeData extends GenDataBase {

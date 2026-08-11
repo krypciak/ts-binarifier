@@ -1,3 +1,4 @@
+import { getOrDefineFunction } from '../code-gen-function-cache'
 import { gray, green } from '../colors'
 import { EnumNode } from './enum'
 import { InterfaceNode } from './interface'
@@ -52,7 +53,7 @@ export class UnionNode extends Node {
         const indexVar = this.keyNode.getIndexVarName(data)
         data.varCounter.v--
 
-        const funcConfig: FunctionConfig = {
+        const funcConfig = getOrDefineFunction(data, {
             name: funcName,
             arguments: ['encoder: Encoder', 'data: any'],
             body:
@@ -73,8 +74,7 @@ export class UnionNode extends Node {
                     )
                     .join('') +
                 `}`,
-        }
-        data.functions[funcConfig.name] = funcConfig
+        })
 
         return this.genEncodeWrapOptional(data, data => `this.` + funcConfig.name + `(encoder, ${data.varName})`)
     }
@@ -82,7 +82,7 @@ export class UnionNode extends Node {
     genDecode(data: GenDecodeData): string {
         const indexVar = this.keyNode.getIndexVarName(data)
 
-        const funcConfig: FunctionConfig = {
+        const funcConfig = getOrDefineFunction(data, {
             name: 'decodeUnion' + data.varCounter.v++,
             arguments: ['decoder: Decoder'],
             body:
@@ -99,8 +99,7 @@ export class UnionNode extends Node {
                     )
                     .join('') +
                 `}\n`,
-        }
-        data.functions[funcConfig.name] = funcConfig
+        })
 
         return this.genDecodeWrapOptional(`this.` + funcConfig.name + `(decoder)`)
     }

@@ -1,3 +1,4 @@
+import { getOrDefineFunction } from '../code-gen-function-cache'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 
@@ -33,7 +34,7 @@ export class ArrayNode extends Node {
     }
 
     genDecode(data: GenDecodeData): string {
-        const funcConfig: FunctionConfig = {
+        const funcConfig = getOrDefineFunction(data, {
             name: 'decodeArray' + data.varCounter.v++,
             arguments: ['decoder: Decoder'],
             body:
@@ -45,8 +46,7 @@ export class ArrayNode extends Node {
                 `${this.type.genDecode({ ...data, indent: 1 })}\n` +
                 `}\n` +
                 `return array`,
-        }
-        data.functions[funcConfig.name] = funcConfig
+        })
 
         return this.genDecodeWrapOptional(`this.` + funcConfig.name + `(decoder)`)
     }
