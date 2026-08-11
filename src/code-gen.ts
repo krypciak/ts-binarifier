@@ -76,7 +76,7 @@ function genParsingClass({
     const encodeCode = type.genEncode({
         config: encodeConfig,
         varName: 'data',
-        indent: 2,
+        indent: 0,
         functions: encodeFunctions,
         varCounter: { v: 0 },
         constants,
@@ -87,7 +87,7 @@ function genParsingClass({
     const decodeCode = type.genDecode({
         config: decodeConfig,
         varCounter: { v: 0 },
-        indent: 2,
+        indent: 0,
         functions: decodeFunctions,
         shared,
     })
