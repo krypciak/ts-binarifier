@@ -1,4 +1,4 @@
-import { red } from '../colors'
+import { yellow } from '../colors'
 import { Node } from './node'
 
 export class BooleanNode extends Node {
@@ -7,7 +7,7 @@ export class BooleanNode extends Node {
     }
 
     print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
-        return red('boolean', noColor) + this.optionalSuffix(ignoreOptional, noColor)
+        return yellow('boolean', noColor) + this.optionalSuffix(ignoreOptional, noColor)
     }
 
     genEncode(data: GenEncodeData): string {

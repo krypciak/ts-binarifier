@@ -65,6 +65,11 @@ describe('encode decode data', () => {
         test('union', async () => {
             await encodeDecodeDataTestMultiple<Type27>(path, 'Type27', [3, 1, 2])
         })
+
+        type Type31 = 2137
+        test('literal', async () => {
+            await encodeDecodeDataTestMultiple<Type31>(path, 'Type31', [2137])
+        })
     })
 
     describe('string', () => {
@@ -81,6 +86,28 @@ describe('encode decode data', () => {
         type Type16 = string
         test('unicode', async () => {
             await encodeDecodeDataTestMultiple<Type16>(path, 'Type16', ['好hi'])
+        })
+
+        type Type32 = 'welcome!'
+        test('literal', async () => {
+            await encodeDecodeDataTestMultiple<Type32>(path, 'Type32', ['welcome!'])
+        })
+    })
+
+    describe('boolean', () => {
+        type Type35 = boolean
+        test('boolean', async () => {
+            await encodeDecodeDataTestMultiple<Type35>(path, 'Type35', [true, false])
+        })
+
+        type Type33 = false
+        test('false literal', async () => {
+            await encodeDecodeDataTestMultiple<Type33>(path, 'Type33', [false])
+        })
+
+        type Type34 = true
+        test('true literal', async () => {
+            await encodeDecodeDataTestMultiple<Type34>(path, 'Type34', [true])
         })
     })
 

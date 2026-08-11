@@ -10,6 +10,7 @@ import { ArrayConstNode } from './nodes/array-const'
 import { JsonNode } from './nodes/json'
 import { assert } from './assert'
 import { EnumNode } from './nodes/enum'
+import { LiteralNode } from './nodes/literal'
 
 export type NodeCreateFunction = (
     optional: boolean | undefined,
@@ -74,6 +75,21 @@ function getPropType(checker: ts.TypeChecker, prop: ts.Symbol): ts.Type {
     return checker.getTypeOfSymbolAtLocation(prop, prop.valueDeclaration || prop.declarations?.[0]!)
 }
 
+function getLiteralValue(type: ts.Type): number | string | boolean | undefined {
+    if (type.isLiteral()) {
+        if (typeof type.value === 'object') {
+            //bigint
+            throw new Error('bigint literals not supported')
+        }
+        return type.value
+    } else if (type.flags & ts.TypeFlags.BooleanLiteral) {
+        // @ts-expect-error
+        const intrinsicName: string = type.intrinsicName
+        if (intrinsicName === 'true') return true
+        if (intrinsicName === 'false') return false
+    }
+}
+
 export class TypeParser {
     defaultFloatBits = 64
 
@@ -127,14 +143,6 @@ export class TypeParser {
                     }
                 }
                 {
-                    /* merge boolean literals */
-                    let boolType = truthyTypes.find(t => t.flags & ts.TypeFlags.BooleanLiteral)
-                    if (boolType) {
-                        truthyTypes = truthyTypes.filter(t => !(t.flags & ts.TypeFlags.BooleanLiteral))
-                        truthyTypes.push(boolType)
-                    }
-                }
-                {
                     /* merge number literals */
                     if (truthyTypes.every(t => t.isNumberLiteral())) {
                         const values = truthyTypes.map(t => t.value)
@@ -152,10 +160,11 @@ export class TypeParser {
                 if (truthyTypes.length == 1) {
                     const type1 = truthyTypes[0]
                     return this.parseToNode(type1, indent, isOptional)
-                } else {
-                    if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
-                    throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
                 }
+                if (truthyTypes.length == 2 && truthyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)) {
+                    return new BooleanNode(isOptional)
+                }
+
             } else {
                 return this.parseToNode(truthyType, indent, isOptional)
             }
@@ -193,18 +202,15 @@ export class TypeParser {
             console.log(spacing, 'intersection')
 
             throw new Error('unimplemented intersection')
-        } else if (type.isLiteral()) {
-            if (debug) console.log(spacing, 'literal', type.value)
+        } else if (getLiteralValue(type) !== undefined) {
+            const value = getLiteralValue(type)!
+            if (debug) console.log(spacing, 'literal', value)
 
-            if (typeof type.value == 'number') {
-                return new NumberNode(isOptional, this.defaultFloatBits, NumberType.Float)
-            } else if (typeof type.value == 'string') {
-                return new StringNode(isOptional)
-            } else throw new Error(`unimplemented literal, typeof type.value == ${typeof type.value}`)
+            return new LiteralNode(isOptional, value)
         } else if (type.flags & ts.TypeFlags.Number) {
             if (debug) console.log(spacing, 'number')
             return new NumberNode(isOptional, this.defaultFloatBits, NumberType.Float)
-        } else if (type.flags & ts.TypeFlags.BooleanLiteral || type.flags & ts.TypeFlags.Boolean) {
+        } else if (type.flags & ts.TypeFlags.Boolean) {
             if (debug) console.log(spacing, 'boolean')
             return new BooleanNode(isOptional)
         } else if (type.flags & ts.TypeFlags.String) {

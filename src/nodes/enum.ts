@@ -1,7 +1,8 @@
 import { Node } from './node'
 import { NumberNode } from './number'
-import { gray, green } from '../colors'
+import { gray } from '../colors'
 import { assert } from '../assert'
+import { LiteralNode } from './literal'
 
 export class EnumNode<T extends string | number | boolean> extends Node {
     unionIdNode: NumberNode
@@ -22,7 +23,7 @@ export class EnumNode<T extends string | number | boolean> extends Node {
             this.unionIdNode.print(noColor) +
             gray(`) */ `, noColor) +
             (this.values.length > 0 ? '(' : '') +
-            this.values.map(str => green(`'${str}'`, noColor)).join(' | ') +
+            this.values.map(v => new LiteralNode(false, v).print(noColor)).join(' | ') +
             (this.values.length > 0 ? ')' : '') +
             this.optionalSuffix(ignoreOptional, noColor)
         )
@@ -53,12 +54,21 @@ export class EnumNode<T extends string | number | boolean> extends Node {
         return unionVarName + `.indexOf(${data.varName})`
     }
 
+    getIndexVarName(data: GenDataBase) {
+        return `i${data.varCounter.v++}`
+    }
+
     genEncode(data: GenEncodeData): string {
-        return this.genEncodeWrapOptional(data, data =>
-            this.unionIdNode.genEncode({
-                ...data,
-                varName: this.genEncodeAccess(data),
-            })
+        const indexVar = this.getIndexVarName(data)
+        return this.genEncodeWrapOptional(
+            data,
+            data =>
+                `const ${indexVar} = ${this.genEncodeAccess(data)}\n` +
+                Node.indent(data.indent) +
+                this.unionIdNode.genEncode({
+                    ...data,
+                    varName: indexVar,
+                })
         )
     }
 
