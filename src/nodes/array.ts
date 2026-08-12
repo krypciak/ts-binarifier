@@ -17,16 +17,15 @@ export class ArrayNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        const valueVar = `v${data.varCounter.v++}`
         const funcConfig = getOrDefineFunction(data, {
-            name: 'encodeArray' + data.varCounter.v++,
+            name: 'encodeArray' + data.varCounter.func++,
             arguments: [`encoder: Encoder`, `array: ` + this.type.toStringInGen(data, { indent: 0 }) + `[]`],
             body:
                 this.sizeNode.genEncode({ ...data, varName: `array.length`, indent: 0 }) +
                 '\n' +
-                `for (const ${valueVar} of array) {\n` +
+                `for (const v of array) {\n` +
                 Node.indent(1) +
-                `${this.type.genEncode({ ...data, varName: valueVar, indent: 1 })}` +
+                `${this.type.genEncode({ ...data, varName: 'v', indent: 1 })}` +
                 `\n` +
                 `}`,
         })
@@ -36,7 +35,7 @@ export class ArrayNode extends Node {
 
     genDecode(data: GenDecodeData): string {
         const funcConfig = getOrDefineFunction(data, {
-            name: 'decodeArray' + data.varCounter.v++,
+            name: 'decodeArray' + data.varCounter.func++,
             arguments: ['decoder: Decoder'],
             body:
                 `const len = ${this.sizeNode.genDecode(data)}\n` +

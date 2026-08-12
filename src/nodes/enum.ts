@@ -44,7 +44,7 @@ export class EnumNode<T extends string | number | boolean> extends Node {
     }
 
     private createUnionVarName(data: GenEncodeData): string {
-        const varName = `union${data.varCounter.v++}`
+        const varName = `union${data.varCounter.union++}`
         const valuesStrArr = `[${this.values.map(v => (typeof v == 'string' ? `'${v}'` : v)).join(', ')}]`
         data.constants.push(`${varName} = ${valuesStrArr} as const`)
 

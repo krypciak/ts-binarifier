@@ -8,6 +8,7 @@ import type {
     GenEncodeDecodeShared,
     GenDecodeConfig,
     ImportsRecord as ImportsRecord,
+    GenDataBase,
 } from './types'
 import { addImport, importsToString } from './code-gen-imports'
 
@@ -58,13 +59,14 @@ function genParsingClass({
     const typeAliasesPath = encoderPath!.replace(/src\/encoder$/, 'src/type-aliases')
     const shared: GenEncodeDecodeShared = {}
     const encodeFunctions: Record<string, FunctionConfig> = {}
+    const varCounter: GenDataBase['varCounter'] = { v: 0, func: 0, union: 0, type: 0 }
     const encodeCode = type.genEncode({
         config: encodeConfig,
         varName: 'data',
         indent: 0,
         functions: encodeFunctions,
         functionHashToName: {},
-        varCounter: { v: 0 },
+        varCounter,
         constants,
         imports,
         shared: shared,
@@ -73,7 +75,7 @@ function genParsingClass({
     const decodeFunctions: Record<string, FunctionConfig> = {}
     const decodeCode = type.genDecode({
         config: decodeConfig,
-        varCounter: { v: 0 },
+        varCounter: { ...varCounter, v: 0, func: 0 },
         indent: 0,
         functions: decodeFunctions,
         functionHashToName: {},

@@ -18,7 +18,7 @@ export interface FunctionConfig {
 }
 
 export interface GenDataBase {
-    varCounter: { v: number }
+    varCounter: { v: number, func: number, union: number, type: number }
     indent: number
 
     functionHashToName: Record<string, string>

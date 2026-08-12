@@ -54,7 +54,7 @@ export class UnionNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        const funcName = 'encodeUnion' + data.varCounter.v++
+        const funcName = 'encodeUnion' + data.varCounter.func++
         const indexVar = this.keyNode.getIndexVarName(data)
         data.varCounter.v--
 
@@ -88,7 +88,7 @@ export class UnionNode extends Node {
         const indexVar = this.keyNode.getIndexVarName(data)
 
         const funcConfig = getOrDefineFunction(data, {
-            name: 'decodeUnion' + data.varCounter.v++,
+            name: 'decodeUnion' + data.varCounter.func++,
             arguments: ['decoder: Decoder'],
             body:
                 `const ${indexVar} = ${this.keyNode.unionIdNode.genDecode(data)}\n` +
