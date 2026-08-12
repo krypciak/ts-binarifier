@@ -1,4 +1,4 @@
-import { getOrDefineFunction } from '../code-gen-function-cache'
+import { getOrDefineFunction } from '../code-gen-functions'
 import { gray, green } from '../colors'
 import type { GenEncodeData, GenDecodeData } from '../types'
 import { EnumNode } from './enum'

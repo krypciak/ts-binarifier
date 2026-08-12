@@ -31,28 +31,6 @@ export interface EncoderDecoder<T = unknown> {
     decode(buf: Uint8Array): T
 }
 
-function functionConfigToString(config: FunctionConfig, indent: number): string {
-    return (
-        Node.indent(indent) +
-        (config.public ? '' : 'private ') +
-        `static ` +
-        config.name +
-        `(` +
-        config.arguments.join(', ') +
-        `)` +
-        (config.returnType ? `: ` + config.returnType : '') +
-        ` {\n` +
-        config.body
-            .split('\n')
-            .map(l => l.trimEnd())
-            .filter(Boolean)
-            .map(l => Node.indent(indent + 1) + l)
-            .join('\n') +
-        '\n' +
-        Node.indent(indent) +
-        `}\n`
-    )
-}
 
 function genParsingClass({
     type,

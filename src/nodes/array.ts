@@ -1,4 +1,4 @@
-import { getOrDefineFunction } from '../code-gen-function-cache'
+import { getOrDefineFunction } from '../code-gen-functions'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 import { StringNode } from './string'
