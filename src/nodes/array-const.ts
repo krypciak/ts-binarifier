@@ -1,4 +1,4 @@
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { Node } from './node'
 
 export class ArrayConstNode extends Node {
@@ -9,12 +9,12 @@ export class ArrayConstNode extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
             '[' +
-            this.indexTypes.map(t => t.print(noColor, indent)).join(', ') +
+            this.indexTypes.map(t => t.toString(shr, { indent: ind.indent })).join(', ') +
             ']' +
-            this.optionalSuffix(ignoreOptional, noColor)
+            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
         )
     }
 

@@ -1,6 +1,12 @@
 import type { ImportsRecord } from './types'
 
-export function addImport(imports: ImportsRecord, importPath: string, name: string, type?: boolean) {
+export function addImport(
+    imports: ImportsRecord | undefined,
+    importPath: string | undefined,
+    name: string,
+    type?: boolean
+) {
+    if (!imports || !importPath) return
     const rec1 = (imports[importPath] ??= {})
     if (type) {
         rec1[name] ??= false

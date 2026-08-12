@@ -48,9 +48,9 @@ export async function generateEncodeDecodeScripts(config: Config) {
         const file = getFile(program, filePath)
         const { type, fullPath } = findTypeForTypeDeclaration(file, checker, typeName)
 
-        const parser = new TypeParser(checker, parserOptions)
+        const parser = new TypeParser(checker, { ...parserOptions, destPath: outPath })
         const node = parser.parseToNode(type)
-        if (printNode) console.log(node.print())
+        if (printNode) console.log(node.printColor())
 
         const encoderPath = baseImportPath ? `${baseImportPath}/src/encoder` : undefined
         const decoderPath = baseImportPath ? `${baseImportPath}/src/decoder` : undefined

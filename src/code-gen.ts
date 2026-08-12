@@ -55,6 +55,7 @@ function genParsingClass({
     addImport(imports, decoderPath!, 'Decoder')
     if (typeImportPath) addImport(imports, typeImportPath, typeShortName, true)
 
+    const typeAliasesPath = encoderPath!.replace(/src\/encoder$/, 'src/type-aliases')
     const shared: GenEncodeDecodeShared = {}
     const encodeFunctions: Record<string, FunctionConfig> = {}
     const encodeCode = type.genEncode({
@@ -67,7 +68,7 @@ function genParsingClass({
         constants,
         imports,
         shared: shared,
-        typeAliasesPath: encoderPath!.replace(/src\/encoder$/, 'src/type-aliases'),
+        typeAliasesImportPath: typeAliasesPath,
     })
     const decodeFunctions: Record<string, FunctionConfig> = {}
     const decodeCode = type.genDecode({
@@ -78,6 +79,7 @@ function genParsingClass({
         functionHashToName: {},
         shared,
         imports,
+        typeAliasesImportPath: typeAliasesPath,
     })
     const codeHash = sha256(encodeCode + decodeCode)
 

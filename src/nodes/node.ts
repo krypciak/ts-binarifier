@@ -1,5 +1,5 @@
 import { gray } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, GenDataBase, SharedPrintConfig, IndividualPrintConfig } from '../types'
 
 export abstract class Node {
     static jsonVarName = 'json'
@@ -52,7 +52,19 @@ export abstract class Node {
 
     constructor(public optional: boolean | undefined) {}
 
-    abstract print(noColor?: boolean, indent?: number, ignoreOptional?: boolean): string
+    abstract toString(shared: SharedPrintConfig, individual: IndividualPrintConfig): string
+
+    toStringInGen(data: GenDataBase, ind: IndividualPrintConfig): string {
+        return this.toString({ noColor: true, imports: data.imports, typeAliasesImportPath: data.typeAliasesImportPath }, ind)
+    }
+
+    printColor() {
+        return this.toString({}, { indent: 0 })
+    }
+    printNoColor() {
+        return this.toString({ noColor: true }, { indent: 0 })
+    }
+
     abstract genEncode(data: GenEncodeData): string
     abstract genDecode(data: GenDecodeData): string
 }

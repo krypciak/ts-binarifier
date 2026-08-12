@@ -1,35 +1,43 @@
-import type { GenEncodeData, GenDecodeData } from '../types'
+import { addImport } from '../code-gen-imports'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { Node } from './node'
 
 export class InterfaceNode extends Node {
     constructor(
         optional: boolean | undefined,
-        public nodes: Record<string, Node>
+        public nodes: Record<string, Node>,
+        public name?: string,
+        public importPath?: string
     ) {
         super(optional)
     }
 
-    static print(nodes: Record<string, Node>, noColor?: boolean, indent: number = 0) {
+    static print(nodes: Record<string, Node>, shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
             '{\n' +
             Object.entries(nodes)
                 .map(
                     ([k, v]) =>
-                        Node.indent(indent + 1) +
+                        Node.indent(ind.indent + 1) +
                         k +
                         (v.optional ? '?' : '') +
                         ': ' +
-                        v.print(noColor, indent + 1, true)
+                        v.toString(shr, { indent: ind.indent + 1, ignoreOptional: true })
                 )
                 .join(`,\n`) +
             '\n' +
-            Node.indent(indent) +
+            Node.indent(ind.indent) +
             '}'
         )
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
-        return InterfaceNode.print(this.nodes, noColor, indent) + this.optionalSuffix(ignoreOptional, noColor)
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        const suffix = this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        if (this.name) {
+            addImport(shr.imports, this.importPath!, this.name, true)
+            return this.name + suffix
+        }
+        return InterfaceNode.print(this.nodes, shr, ind) + suffix
     }
 
     static isStringQuotingNeeded(key: string): boolean {

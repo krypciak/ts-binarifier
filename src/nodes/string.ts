@@ -1,7 +1,7 @@
 import { Node } from './node'
 import { NumberNode } from './number'
 import { green } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 
 export class StringNode extends Node {
     private maxSizeNode: NumberNode
@@ -11,8 +11,8 @@ export class StringNode extends Node {
         this.maxSizeNode = NumberNode.optimalForRange(false, 0, maxSize)
     }
 
-    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
-        return green('string', noColor) + this.optionalSuffix(ignoreOptional, noColor)
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        return green('string', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
     }
 
     genEncode(data: GenEncodeData) {

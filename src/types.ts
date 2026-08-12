@@ -1,3 +1,13 @@
+export interface SharedPrintConfig {
+    noColor?: boolean
+    imports?: ImportsRecord
+    typeAliasesImportPath?: string
+}
+export interface IndividualPrintConfig {
+    indent: number
+    ignoreOptional?: boolean
+}
+
 export interface FunctionConfig {
     name: string
     arguments: string[]
@@ -13,6 +23,7 @@ export interface GenDataBase {
     functionHashToName: Record<string, string>
     functions: Record<string, FunctionConfig>
     imports: ImportsRecord
+    typeAliasesImportPath: string
 }
 export interface GenEncodeData extends GenDataBase {
     config: GenEncodeConfig
@@ -20,7 +31,6 @@ export interface GenEncodeData extends GenDataBase {
 
     varName: string
     constants: string[]
-    typeAliasesPath?: string
 }
 export interface GenEncodeConfig {
     asserts?: boolean

@@ -1,7 +1,8 @@
 import { Node } from './node'
 import { assert } from '../assert'
 import { yellow } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, SharedPrintConfig, IndividualPrintConfig } from '../types'
+import { addImport } from '../code-gen-imports'
 
 export enum NumberType {
     Unsigned = 1,
@@ -62,11 +63,10 @@ export class NumberNode extends Node {
         }
     }
 
-    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
-        return (
-            yellow(getLetterFromNumberType(this.type) + this.bits, noColor) +
-            this.optionalSuffix(ignoreOptional, noColor)
-        )
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        const type = getLetterFromNumberType(this.type) + this.bits
+        addImport(shr.imports, shr.typeAliasesImportPath, type, true)
+        return yellow(type, shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
     }
 
     private genEncodeRangeCheck(varName: string): string {
@@ -90,7 +90,7 @@ export class NumberNode extends Node {
             return (
                 Node.genEncodeAssertNot(
                     { ...data, varName: this.genEncodeRangeCheck(data.varName) },
-                    `Number of value: \${${data.varName}} does not fit into ${this.print(true)}`
+                    `Number of value: \${${data.varName}} does not fit into ${this.printNoColor()}`
                 ) + `encoder.${suffix}`
             )
         })

@@ -1,4 +1,5 @@
 import { gray } from '../colors'
+import type { SharedPrintConfig, IndividualPrintConfig } from '../types'
 import { Node } from './node'
 
 export class UndefinedNode extends Node {
@@ -6,8 +7,8 @@ export class UndefinedNode extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean) {
-        return gray('undefined', noColor)
+    toString(shr: SharedPrintConfig, _ind: IndividualPrintConfig) {
+        return gray('undefined', shr.noColor)
     }
 
     genEncode(): string {

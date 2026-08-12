@@ -1,4 +1,5 @@
 import ts from 'typescript'
+import * as path from 'path'
 import { Node } from './nodes/node'
 import { NumberNode, NumberType } from './nodes/number'
 import { StringNode } from './nodes/string'
@@ -25,6 +26,7 @@ export interface TypeParserConfig {
     use32BitFloatsByDefault?: boolean
     enumTypeOverride?: Record<string, string>
     customNodes?: Record<string, NodeCreateFunction>
+    destPath?: string
 }
 
 function getSpecialLabels(types: ts.Type[]) {
@@ -102,6 +104,27 @@ export class TypeParser {
         if (config.use32BitFloatsByDefault) {
             this.defaultFloatBits = 32
         }
+    }
+
+    private getImportableName(type: ts.Type): { name: string; importPath: string } | undefined {
+        const symbol = type.symbol
+        if (!symbol) return undefined
+        const name = symbol.name
+        if (!name || name == '__type' || !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) return undefined
+        const decl = symbol.declarations?.[0]
+        if (!decl) return undefined
+        const sourceFile = decl.getSourceFile()
+        if (sourceFile.isDeclarationFile || !ts.isSourceFile(decl.parent)) return undefined
+        const isExported =
+            (ts.canHaveModifiers(decl) && ts.getModifiers(decl)?.some(m => m.kind == ts.SyntaxKind.ExportKeyword)) ||
+            this.checker.getSymbolAtLocation(sourceFile)?.exports?.has(name as ts.__String) === true
+        if (!isExported) return undefined
+        const destPath = this.config.destPath
+        if (!destPath) return undefined
+        let rel = path.relative(path.dirname(destPath), sourceFile.fileName).replace(/\\/g, '/')
+        rel = rel.replace(/\.ts$/, '')
+        if (!rel.startsWith('.')) rel = './' + rel
+        return { name, importPath: rel }
     }
 
     private handleUnion(type: ts.UnionType, indent: number) {
@@ -347,7 +370,8 @@ export class TypeParser {
                     return [p.name, this.parseToNode(propType, indent + 1)]
                 })
             )
-            return new InterfaceNode(isOptional, nodes)
+            const importable = this.getImportableName(type)
+            return new InterfaceNode(isOptional, nodes, importable?.name, importable?.importPath)
         } else if (this.checker.isArrayLikeType(type) && (type as any).resolvedTypeArguments) {
             const types: ts.Type[] = (type as any).resolvedTypeArguments
             assert(types)

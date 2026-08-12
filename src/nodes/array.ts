@@ -1,10 +1,7 @@
 import { getOrDefineFunction } from '../code-gen-functions'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
-import { StringNode } from './string'
-import { BooleanNode } from './boolean'
-import { InterfaceNode } from './interface'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 
 export class ArrayNode extends Node {
     constructor(
@@ -15,15 +12,19 @@ export class ArrayNode extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
-        return this.type.print(noColor, indent) + '[]' + this.optionalSuffix(ignoreOptional, noColor)
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        return (
+            this.type.toString(shr, { indent: ind.indent }) +
+            '[]' +
+            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        )
     }
 
     genEncode(data: GenEncodeData): string {
         const valueVar = `v${data.varCounter.v++}`
         const funcConfig = getOrDefineFunction(data, {
             name: 'encodeArray' + data.varCounter.v++,
-            arguments: ['encoder: Encoder, array: any'],
+            arguments: [`encoder: Encoder`, `array: ` + this.type.toStringInGen(data, { indent: 0 }) + `[]`],
             body:
                 this.sizeNode.genEncode({ ...data, varName: `array.length`, indent: 0 }) +
                 '\n' +

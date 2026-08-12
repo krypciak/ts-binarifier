@@ -1,4 +1,5 @@
 import { gray } from '../colors'
+import type { SharedPrintConfig, IndividualPrintConfig } from '../types'
 import { Node } from './node'
 
 export class NullNode extends Node {
@@ -6,8 +7,8 @@ export class NullNode extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
-        return gray('null', noColor) + this.optionalSuffix(ignoreOptional, noColor)
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        return gray('null', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
     }
 
     genEncode(): string {

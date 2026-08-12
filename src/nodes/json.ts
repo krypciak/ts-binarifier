@@ -1,5 +1,5 @@
 import { magenta } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { Node } from './node'
 import { StringNode } from './string'
 
@@ -16,8 +16,8 @@ export class JsonNode extends Node {
         this.stringNode = new StringNode(false, maxLength)
     }
 
-    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
-        return magenta('any', noColor) + this.optionalSuffix(ignoreOptional, noColor)
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+        return magenta('any', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
     }
 
     genEncode(data: GenEncodeData): string {

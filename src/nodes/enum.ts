@@ -3,7 +3,7 @@ import { NumberNode } from './number'
 import { gray } from '../colors'
 import { assert } from '../assert'
 import { LiteralNode } from './literal'
-import type { GenEncodeData, GenDecodeData, GenDataBase } from '../types'
+import type { GenEncodeData, GenDecodeData, GenDataBase, IndividualPrintConfig, SharedPrintConfig } from '../types'
 
 export class EnumNode<T extends string | number | boolean> extends Node {
     unionIdNode: NumberNode
@@ -18,15 +18,15 @@ export class EnumNode<T extends string | number | boolean> extends Node {
         this.unionIdNode = NumberNode.optimalForRange(false, 0, values.length - 1)
     }
 
-    print(noColor?: boolean, _indent: number = 0, ignoreOptional?: boolean) {
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
-            gray(`/* (`, noColor) +
-            this.unionIdNode.print(noColor) +
-            gray(`) */ `, noColor) +
+            gray(`/* (`, shr.noColor) +
+            this.unionIdNode.toString(shr, { indent: ind.indent + 1 }) +
+            gray(`) */ `, shr.noColor) +
             (this.values.length > 0 ? '(' : '') +
-            this.values.map(v => new LiteralNode(false, v).print(noColor)).join(' | ') +
+            this.values.map(v => new LiteralNode(false, v).toString(shr, { indent: ind.indent + 1 })).join(' | ') +
             (this.values.length > 0 ? ')' : '') +
-            this.optionalSuffix(ignoreOptional, noColor)
+            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
         )
     }
 

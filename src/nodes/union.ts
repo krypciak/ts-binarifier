@@ -1,6 +1,6 @@
 import { getOrDefineFunction } from '../code-gen-functions'
 import { gray, green } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { EnumNode } from './enum'
 import { InterfaceNode } from './interface'
 import { LiteralNode } from './literal'
@@ -22,30 +22,32 @@ export class UnionNode extends Node {
         }
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
-            gray(`/* union key `, noColor) +
-            green(`'${this.keyName}'`, noColor) +
-            gray(`: `, noColor) +
-            this.keyNode.print(noColor, indent) +
-            gray(` */ `, noColor) +
+            (shr.noColor
+                ? ''
+                : gray(`/* union key `, shr.noColor) +
+                  green(`'${this.keyName}'`, shr.noColor) +
+                  gray(`: `, shr.noColor) +
+                  this.keyNode.toString(shr, { indent: ind.indent + 1 }) +
+                  gray(` */ `, shr.noColor)) +
             '(' +
             this.keyNode.values
                 .map(
                     (key, i) =>
-                        (i > 0 ? Node.indent(indent) : '') +
+                        (i > 0 ? Node.indent(ind.indent) : '') +
                         InterfaceNode.print(
                             {
                                 [this.keyName]: new LiteralNode(false, this.keyNode.values[i]),
                                 ...this.dataNodes[`${key}`].nodes,
                             },
-                            noColor,
-                            indent
+                            shr,
+                            { indent: ind.indent + 1 }
                         )
                 )
                 .join(' | ') +
             ')' +
-            this.optionalSuffix(ignoreOptional, noColor)
+            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
         )
     }
 
@@ -56,7 +58,7 @@ export class UnionNode extends Node {
 
         const funcConfig = getOrDefineFunction(data, {
             name: funcName,
-            arguments: ['encoder: Encoder', 'data: any'],
+            arguments: ['encoder: Encoder', `data: ` + this.toStringInGen(data, { indent: 0 })],
             body:
                 `${this.keyNode.genEncode({ ...data, indent: 0, varName: data.varName + InterfaceNode.genPropertyAccess(this.keyName) })}\n` +
                 `switch (${indexVar}) {\n` +
@@ -64,7 +66,7 @@ export class UnionNode extends Node {
                     .map(
                         (key, i) =>
                             Node.indent(1) +
-                            `case ${i}: { // ${this.keyName}: ${new LiteralNode(false, key).print(true)}\n` +
+                            `case ${i}: { // ${this.keyName}: ${new LiteralNode(false, key).printNoColor()}\n` +
                             Node.indent(2) +
                             this.dataNodes[`${key}`].genEncode({ ...data, indent: 2 }) +
                             '\n' +

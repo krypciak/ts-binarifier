@@ -1,6 +1,6 @@
 import { Node } from './node'
 import { green, yellow } from '../colors'
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 
 export class LiteralNode<T extends string | number | boolean> extends Node {
     constructor(
@@ -10,16 +10,16 @@ export class LiteralNode<T extends string | number | boolean> extends Node {
         super(optional)
     }
 
-    print(noColor?: boolean, _indent: number = 0, _ignoreOptional?: boolean) {
+    toString(shr: SharedPrintConfig, _ind: IndividualPrintConfig) {
         const v = this.value
-        return typeof v === 'string' ? green(`'${v}'`, noColor) : yellow(`${v}`, noColor)
+        return typeof v === 'string' ? green(`'${v}'`, shr.noColor) : yellow(`${v}`, shr.noColor)
     }
 
     genEncode(data: GenEncodeData) {
-        return this.genEncodeWrapOptional(data, _data => '// literal: ' + this.print(true))
+        return this.genEncodeWrapOptional(data, _data => '// literal: ' + this.printNoColor())
     }
 
     genDecode(_data: GenDecodeData): string {
-        return this.genDecodeWrapOptional(this.print(true))
+        return this.genDecodeWrapOptional(this.printNoColor())
     }
 }

@@ -1,4 +1,4 @@
-import type { GenEncodeData, GenDecodeData } from '../types'
+import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 
@@ -14,14 +14,14 @@ export class RecordNode extends Node {
         sizeNode.type = NumberType.Unsigned
     }
 
-    print(noColor?: boolean, indent: number = 0, ignoreOptional?: boolean) {
+    toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
             'Record<' +
-            this.key.print(noColor, indent) +
+            this.key.toString(shr, { indent: ind.indent + 1 }) +
             ', ' +
-            this.value.print(noColor, indent) +
+            this.value.toString(shr, { indent: ind.indent + 1 }) +
             '>' +
-            this.optionalSuffix(ignoreOptional, noColor)
+            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
         )
     }
 
