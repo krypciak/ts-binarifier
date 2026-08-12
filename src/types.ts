@@ -12,6 +12,7 @@ export interface GenDataBase {
 
     functionHashToName: Record<string, string>
     functions: Record<string, FunctionConfig>
+    imports: ImportsRecord
 }
 export interface GenEncodeData extends GenDataBase {
     config: GenEncodeConfig
@@ -19,7 +20,6 @@ export interface GenEncodeData extends GenDataBase {
 
     varName: string
     constants: string[]
-    imports: string[]
     typeAliasesPath?: string
 }
 export interface GenEncodeConfig {
@@ -34,3 +34,6 @@ export interface GenDecodeData extends GenDataBase {
 }
 
 export interface GenDecodeConfig {}
+
+/* true - import value, false - import type */
+export type ImportsRecord = Record<string, Record<string, boolean>>

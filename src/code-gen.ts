@@ -1,7 +1,15 @@
 import { Node } from './nodes/node'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { sha256 } from './code-gen-function-cache'
+import { functionConfigToString, sha256 } from './code-gen-functions'
+import type {
+    GenEncodeConfig,
+    FunctionConfig,
+    GenEncodeDecodeShared,
+    GenDecodeConfig,
+    ImportsRecord as ImportsRecord,
+} from './types'
+import { addImport, importsToString } from './code-gen-imports'
 
 export interface CodeGenConfig {
     type: Node
@@ -31,7 +39,6 @@ export interface EncoderDecoder<T = unknown> {
     decode(buf: Uint8Array): T
 }
 
-
 function genParsingClass({
     type,
     className,
@@ -43,7 +50,11 @@ function genParsingClass({
     decodeConfig,
 }: CodeGenConfig): string {
     const constants: string[] = []
-    const imports: string[] = []
+    const imports: ImportsRecord = {}
+    addImport(imports, encoderPath!, 'Encoder')
+    addImport(imports, decoderPath!, 'Decoder')
+    if (typeImportPath) addImport(imports, typeImportPath, typeShortName, true)
+
     const shared: GenEncodeDecodeShared = {}
     const encodeFunctions: Record<string, FunctionConfig> = {}
     const encodeCode = type.genEncode({
@@ -56,6 +67,7 @@ function genParsingClass({
         constants,
         imports,
         shared: shared,
+        typeAliasesPath: encoderPath!.replace(/src\/encoder$/, 'src/type-aliases'),
     })
     const decodeFunctions: Record<string, FunctionConfig> = {}
     const decodeCode = type.genDecode({
@@ -65,6 +77,7 @@ function genParsingClass({
         functions: decodeFunctions,
         functionHashToName: {},
         shared,
+        imports,
     })
     const codeHash = sha256(encodeCode + decodeCode)
 
@@ -87,10 +100,7 @@ function genParsingClass({
     decodeFunctions[mainDecodeFunction.name] = mainDecodeFunction
 
     return (
-        `import { Encoder } from '${encoderPath}'\n` +
-        `import { Decoder } from '${decoderPath}'\n` +
-        (typeImportPath ? `import type { ${typeShortName} } from '${typeImportPath}'\n` : '') +
-        imports.join('\n') +
+        importsToString(imports) +
         '\n' +
         '\n' +
         `export class ${className} {\n` +
