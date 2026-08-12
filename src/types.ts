@@ -2,6 +2,7 @@ export interface SharedPrintConfig {
     noColor?: boolean
     imports?: ImportsRecord
     typeAliasesImportPath?: string
+    noInterfaceNameShorted?: boolean
 }
 export interface IndividualPrintConfig {
     indent: number

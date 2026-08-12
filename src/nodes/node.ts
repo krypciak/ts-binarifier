@@ -12,8 +12,10 @@ export abstract class Node {
         return ' '.repeat(v * Node.indentMulti)
     }
 
-    protected optionalSuffix(ignoreOptional: boolean | undefined, noColor: boolean | undefined) {
-        return this.optional && !ignoreOptional ? ' | ' + gray('undefined', noColor) : ''
+    protected toStringWrapInOptionalUnion(shr: SharedPrintConfig, ind: IndividualPrintConfig, str: string) {
+        if (this.optional && !ind.ignoreOptional) str += ' | ' + gray('undefined', shr.noColor)
+        const addBrackets = str.includes('|')
+        return (addBrackets ? '(' : '') + str + (addBrackets ? ')' : '')
     }
 
     protected genEncodeWrapOptional(data: GenEncodeData, strFunc: (data: GenEncodeData) => string) {
@@ -55,14 +57,17 @@ export abstract class Node {
     abstract toString(shared: SharedPrintConfig, individual: IndividualPrintConfig): string
 
     toStringInGen(data: GenDataBase, ind: IndividualPrintConfig): string {
-        return this.toString({ noColor: true, imports: data.imports, typeAliasesImportPath: data.typeAliasesImportPath }, ind)
+        return this.toString(
+            { noColor: true, imports: data.imports, typeAliasesImportPath: data.typeAliasesImportPath },
+            ind
+        )
     }
 
     printColor() {
-        return this.toString({}, { indent: 0 })
+        return this.toString({ noInterfaceNameShorted: true }, { indent: 0 })
     }
     printNoColor() {
-        return this.toString({ noColor: true }, { indent: 0 })
+        return this.toString({ noColor: true, noInterfaceNameShorted: true }, { indent: 0 })
     }
 
     abstract genEncode(data: GenEncodeData): string

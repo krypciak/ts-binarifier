@@ -20,13 +20,16 @@ export class EnumNode<T extends string | number | boolean> extends Node {
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         return (
-            gray(`/* (`, shr.noColor) +
-            this.unionIdNode.toString(shr, { indent: ind.indent + 1 }) +
-            gray(`) */ `, shr.noColor) +
-            (this.values.length > 0 ? '(' : '') +
-            this.values.map(v => new LiteralNode(false, v).toString(shr, { indent: ind.indent + 1 })).join(' | ') +
-            (this.values.length > 0 ? ')' : '') +
-            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+            (!shr.noColor
+                ? gray(`/* (`, shr.noColor) +
+                  this.unionIdNode.toString(shr, { indent: ind.indent + 1 }) +
+                  gray(`) */ `, shr.noColor)
+                : '') +
+            this.toStringWrapInOptionalUnion(
+                shr,
+                ind,
+                this.values.map(v => new LiteralNode(false, v).toString(shr, { indent: ind.indent + 1 })).join(' | ')
+            )
         )
     }
 

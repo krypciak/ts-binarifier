@@ -17,7 +17,7 @@ export class JsonNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return magenta('any', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(shr, ind, magenta('any', shr.noColor))
     }
 
     genEncode(data: GenEncodeData): string {

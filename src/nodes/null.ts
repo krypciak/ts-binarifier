@@ -8,7 +8,7 @@ export class NullNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return gray('null', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(shr, ind, gray('null', shr.noColor))
     }
 
     genEncode(): string {

@@ -12,7 +12,7 @@ export class StringNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return green('string', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(shr, ind, green('string', shr.noColor))
     }
 
     genEncode(data: GenEncodeData) {

@@ -66,7 +66,7 @@ export class NumberNode extends Node {
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
         const type = getLetterFromNumberType(this.type) + this.bits
         addImport(shr.imports, shr.typeAliasesImportPath, type, true)
-        return yellow(type, shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(shr, ind, yellow(type, shr.noColor))
     }
 
     private genEncodeRangeCheck(varName: string): string {

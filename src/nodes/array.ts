@@ -13,11 +13,7 @@ export class ArrayNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return (
-            this.type.toString(shr, { indent: ind.indent }) +
-            '[]' +
-            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
-        )
+        return this.toStringWrapInOptionalUnion(shr, ind, this.type.toString(shr, { indent: ind.indent }) + '[]')
     }
 
     genEncode(data: GenEncodeData): string {

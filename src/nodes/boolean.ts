@@ -8,7 +8,7 @@ export class BooleanNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return yellow('boolean', shr.noColor) + this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(shr, ind, yellow('boolean', shr.noColor))
     }
 
     getTypescriptType(_data: GenDataBase): string {

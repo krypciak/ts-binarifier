@@ -32,22 +32,24 @@ export class UnionNode extends Node {
                   this.keyNode.toString(shr, { indent: ind.indent + 1 }) +
                   gray(` */ `, shr.noColor)) +
             '(' +
-            this.keyNode.values
-                .map(
-                    (key, i) =>
-                        (i > 0 ? Node.indent(ind.indent) : '') +
-                        InterfaceNode.print(
-                            {
-                                [this.keyName]: new LiteralNode(false, this.keyNode.values[i]),
-                                ...this.dataNodes[`${key}`].nodes,
-                            },
-                            shr,
-                            { indent: ind.indent + 1 }
-                        )
-                )
-                .join(' | ') +
-            ')' +
-            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+            this.toStringWrapInOptionalUnion(
+                shr,
+                ind,
+                this.keyNode.values
+                    .map(
+                        (key, i) =>
+                            (i > 0 ? Node.indent(ind.indent) : '') +
+                            InterfaceNode.print(
+                                shr,
+                                { indent: ind.indent + 1 },
+                                {
+                                    [this.keyName]: new LiteralNode(false, this.keyNode.values[i]),
+                                    ...this.dataNodes[`${key}`].nodes,
+                                }
+                            )
+                    )
+                    .join(' | ') + ')'
+            )
         )
     }
 

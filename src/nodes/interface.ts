@@ -12,7 +12,7 @@ export class InterfaceNode extends Node {
         super(optional)
     }
 
-    static print(nodes: Record<string, Node>, shr: SharedPrintConfig, ind: IndividualPrintConfig) {
+    static print(shr: SharedPrintConfig, ind: IndividualPrintConfig, nodes: Record<string, Node>) {
         return (
             '{\n' +
             Object.entries(nodes)
@@ -32,12 +32,11 @@ export class InterfaceNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        const suffix = this.optionalSuffix(ind.ignoreOptional, shr.noColor)
-        if (this.name) {
+        if (this.name && !shr.noInterfaceNameShorted) {
             addImport(shr.imports, this.importPath!, this.name, true)
-            return this.name + suffix
+            return this.toStringWrapInOptionalUnion(shr, ind, this.name)
         }
-        return InterfaceNode.print(this.nodes, shr, ind) + suffix
+        return this.toStringWrapInOptionalUnion(shr, ind, InterfaceNode.print(shr, ind, this.nodes))
     }
 
     static isStringQuotingNeeded(key: string): boolean {

@@ -15,13 +15,14 @@ export class RecordNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return (
+        return this.toStringWrapInOptionalUnion(
+            shr,
+            ind,
             'Record<' +
-            this.key.toString(shr, { indent: ind.indent + 1 }) +
-            ', ' +
-            this.value.toString(shr, { indent: ind.indent + 1 }) +
-            '>' +
-            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+                this.key.toString(shr, { indent: ind.indent + 1 }) +
+                ', ' +
+                this.value.toString(shr, { indent: ind.indent + 1 }) +
+                '>'
         )
     }
 

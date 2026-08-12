@@ -10,11 +10,10 @@ export class ArrayConstNode extends Node {
     }
 
     toString(shr: SharedPrintConfig, ind: IndividualPrintConfig) {
-        return (
-            '[' +
-            this.indexTypes.map(t => t.toString(shr, { indent: ind.indent })).join(', ') +
-            ']' +
-            this.optionalSuffix(ind.ignoreOptional, shr.noColor)
+        return this.toStringWrapInOptionalUnion(
+            shr,
+            ind,
+            '[' + this.indexTypes.map(t => t.toString(shr, { indent: ind.indent })).join(', ') + ']'
         )
     }
 
