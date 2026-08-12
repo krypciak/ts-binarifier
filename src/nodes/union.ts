@@ -1,5 +1,6 @@
 import { getOrDefineFunction } from '../code-gen-function-cache'
 import { gray, green } from '../colors'
+import type { GenEncodeData, GenDecodeData } from '../types'
 import { EnumNode } from './enum'
 import { InterfaceNode } from './interface'
 import { LiteralNode } from './literal'

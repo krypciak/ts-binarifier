@@ -4,6 +4,7 @@ import * as path from 'path'
 import { codeGen } from './code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from './type-extractor'
 import { TypeParser, type TypeParserConfig } from './type-parser'
+import type { GenDecodeConfig, GenEncodeConfig } from './types'
 
 export interface Config {
     configs: SingleConfig[]

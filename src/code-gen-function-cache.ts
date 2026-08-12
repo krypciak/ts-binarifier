@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import type { FunctionConfig, GenDataBase } from './types'
 
 export function sha256(str: string) {
     return createHash('sha256').update(str).digest('base64')

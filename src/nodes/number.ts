@@ -1,6 +1,7 @@
 import { Node } from './node'
 import { assert } from '../assert'
 import { yellow } from '../colors'
+import type { GenEncodeData, GenDecodeData } from '../types'
 
 export enum NumberType {
     Unsigned = 1,

@@ -1,6 +1,10 @@
 import { getOrDefineFunction } from '../code-gen-function-cache'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
+import { StringNode } from './string'
+import { BooleanNode } from './boolean'
+import { InterfaceNode } from './interface'
+import type { GenEncodeData, GenDecodeData } from '../types'
 
 export class ArrayNode extends Node {
     constructor(

@@ -1,42 +1,5 @@
 import { gray } from '../colors'
-
-declare global {
-    interface FunctionConfig {
-        name: string
-        arguments: string[]
-        body: string
-        public?: boolean
-        returnType?: string
-    }
-    interface GenDataBase {
-        varCounter: { v: number }
-        indent: number
-
-        functionHashToName: Record<string, string>
-        functions: Record<string, FunctionConfig>
-    }
-    interface GenEncodeData extends GenDataBase {
-        config: GenEncodeConfig
-        shared: GenEncodeDecodeShared
-
-        varName: string
-        constants: string[]
-        imports: string[]
-    }
-    interface GenEncodeConfig {
-        asserts?: boolean
-    }
-    interface GenEncodeDecodeShared {
-        unionTypes?: Record<string, (string | number | boolean)[]>
-    }
-
-    interface GenDecodeData extends GenDataBase {
-        config: GenDecodeConfig
-        shared: GenEncodeDecodeShared
-    }
-
-    interface GenDecodeConfig {}
-}
+import type { GenEncodeData, GenDecodeData } from '../types'
 
 export abstract class Node {
     static jsonVarName = 'json'

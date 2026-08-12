@@ -1,6 +1,7 @@
 import { Node } from './node'
 import { NumberNode } from './number'
 import { green } from '../colors'
+import type { GenEncodeData, GenDecodeData } from '../types'
 
 export class StringNode extends Node {
     private maxSizeNode: NumberNode

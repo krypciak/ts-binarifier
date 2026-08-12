@@ -1,3 +1,4 @@
+import type { GenEncodeData, GenDecodeData } from '../types'
 import { Node } from './node'
 
 export class ArrayConstNode extends Node {

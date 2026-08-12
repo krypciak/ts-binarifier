@@ -1,4 +1,5 @@
 import { yellow } from '../colors'
+import type { GenEncodeData } from '../types'
 import { Node } from './node'
 
 export class BooleanNode extends Node {

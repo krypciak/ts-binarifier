@@ -1,4 +1,5 @@
 import { magenta } from '../colors'
+import type { GenEncodeData, GenDecodeData } from '../types'
 import { Node } from './node'
 import { StringNode } from './string'
 

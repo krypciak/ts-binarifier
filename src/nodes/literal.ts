@@ -1,5 +1,6 @@
 import { Node } from './node'
 import { green, yellow } from '../colors'
+import type { GenEncodeData, GenDecodeData } from '../types'
 
 export class LiteralNode<T extends string | number | boolean> extends Node {
     constructor(

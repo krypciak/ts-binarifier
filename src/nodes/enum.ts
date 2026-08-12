@@ -3,6 +3,7 @@ import { NumberNode } from './number'
 import { gray } from '../colors'
 import { assert } from '../assert'
 import { LiteralNode } from './literal'
+import type { GenEncodeData, GenDecodeData, GenDataBase } from '../types'
 
 export class EnumNode<T extends string | number | boolean> extends Node {
     unionIdNode: NumberNode

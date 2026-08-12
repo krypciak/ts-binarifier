@@ -6,6 +6,7 @@ import { codeGen, type EncoderDecoder } from '../code-gen'
 import { createProgram, findTypeForTypeDeclaration, getFile } from '../type-extractor'
 import { TypeParser, type TypeParserConfig } from '../type-parser'
 import { fileURLToPath } from 'url'
+import type { GenDecodeConfig, GenEncodeConfig } from '../types'
 
 const projectRoot = fileURLToPath(new URL('../..', import.meta.url))
 
