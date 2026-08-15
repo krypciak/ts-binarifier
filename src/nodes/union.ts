@@ -58,9 +58,13 @@ export class UnionNode extends Node {
 
         const funcConfig = getOrDefineFunction(data, {
             name: funcName,
-            arguments: ['encoder: Encoder', `data: ` + this.toStringInGen(data, { indent: 0 })],
+            arguments: [
+                'encoder: Encoder',
+                `union: ` + 'any',
+                // this.toStringInGen(data, { indent: 0 })
+            ],
             body:
-                `${this.keyNode.genEncode({ ...data, indent: 0, varName: data.varName + InterfaceNode.genPropertyAccess(this.keyName) })}\n` +
+                `${this.keyNode.genEncode({ ...data, indent: 0, varName: 'union' + InterfaceNode.genPropertyAccess(this.keyName) })}\n` +
                 `switch (${indexVar}) {\n` +
                 this.keyNode.values
                     .map(
@@ -68,7 +72,7 @@ export class UnionNode extends Node {
                             Node.indent(1) +
                             `case ${i}: { // ${this.keyName}: ${new LiteralNode(false, key).printNoColor()}\n` +
                             Node.indent(2) +
-                            this.dataNodes[`${key}`].genEncode({ ...data, indent: 2 }) +
+                            this.dataNodes[`${key}`].genEncode({ ...data, varName: 'union', indent: 2 }) +
                             '\n' +
                             Node.indent(2) +
                             `break\n` +
