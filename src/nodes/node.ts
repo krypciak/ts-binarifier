@@ -14,7 +14,8 @@ export abstract class Node {
 
     protected toStringWrapInOptionalUnion(shr: SharedPrintConfig, ind: IndividualPrintConfig, str: string) {
         if (this.optional && !ind.ignoreOptional) str += ' | ' + gray('undefined', shr.noColor)
-        const addBrackets = str.includes('|')
+        const addBrackets =
+            str.includes('|') && !(str.endsWith('>') || str.endsWith('}') || str.endsWith(']') || str.endsWith(')'))
         return (addBrackets ? '(' : '') + str + (addBrackets ? ')' : '')
     }
 

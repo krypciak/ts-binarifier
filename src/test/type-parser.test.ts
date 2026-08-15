@@ -37,6 +37,6 @@ describe('type parser', () => {
     type Type4 = Record<'a' | 'b' | 'c', number>
     test('record string union key', async () => {
         const { node } = await setupParserAndParseNode(path, 'Type4')
-        expect(node.printNoColor()).toEqualIgnoringWhitespace(`(Record<('a' | 'b' | 'c'), f64>)`)
+        expect(node.printNoColor()).toEqualIgnoringWhitespace(`Record<('a' | 'b' | 'c'), f64>`)
     })
 })
