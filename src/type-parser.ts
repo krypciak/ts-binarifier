@@ -127,136 +127,133 @@ export class TypeParser {
         return { name, importPath: rel }
     }
 
-    private handleUnion(type: ts.UnionType, indent: number) {
+    private handleUnion(unionType: ts.UnionType, indent: number) {
         const spacing = '  '.repeat(indent)
 
         const isOptional =
-            type.types.findIndex(t => t.flags & ts.TypeFlags.Undefined || t.flags & ts.TypeFlags.Null) != -1
-        const truthyType = type.getNonNullableType()
+            unionType.types.findIndex(t => t.flags & ts.TypeFlags.Undefined || t.flags & ts.TypeFlags.Null) != -1
 
-        if (debug) console.log(spacing, 'union found, isOptional:', isOptional, this.checker.typeToString(type))
+        if (debug) console.log(spacing, 'union found, isOptional:', isOptional, this.checker.typeToString(unionType))
 
-        if (truthyType.isUnion()) {
-            let truthyTypes = truthyType.types
-            {
-                const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
-                if (enumValueTypes.length > 0) {
-                    if (this.config.enumTypeOverride) {
-                        const enumNames = enumValueTypes.map(t => {
-                            const enumDec = t.symbol.declarations?.[0].parent
-                            if (!enumDec) return
-                            assert(ts.isEnumDeclaration(enumDec))
-                            return enumDec.name.getText()
-                        })
-                        for (const enumName of enumNames) {
-                            if (!enumName) continue
-                            const valueOverride = this.config.enumTypeOverride[enumName]
-                            if (!valueOverride) continue
-                            const numberNode = NumberNode.fromName(isOptional, valueOverride)
-                            if (numberNode) return numberNode
-                        }
-                    }
+        const truthyType = unionType.getNonNullableType()
 
-                    if (!this.config.noEnumOptimalization && enumValueTypes.every(t => t.isNumberLiteral())) {
-                        const values = enumValueTypes.map(t => t.value)
-                        const min = Math.min(...values)
-                        const max = Math.max(...values)
-                        return NumberNode.optimalForRange(isOptional, min, max)
-                    }
-                }
-            }
-            {
-                /* merge number literals */
-                if (truthyTypes.every(t => t.isNumberLiteral())) {
-                    const values = truthyTypes.map(t => t.value)
-                    return new EnumNode(isOptional, values)
-                }
-            }
-            {
-                /* merge string literals */
-                if (truthyTypes.every(t => t.isStringLiteral())) {
-                    const values = truthyTypes.map(t => t.value)
-                    return new EnumNode(isOptional, values)
-                }
-            }
-
-            if (truthyTypes.length == 1) {
-                const type1 = truthyTypes[0]
-                return this.parseToNode(type1, indent, isOptional)
-            }
-            if (truthyTypes.length == 2 && truthyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)) {
-                return new BooleanNode(isOptional)
-            }
-
-            if (truthyTypes.every(t => t.symbol && t.getProperties().length > 0)) {
-                const propertyNamesSetArr = truthyTypes.map(t => new Set(t.getProperties().map(s => s.name)))
-                const commonUnionKeys = propertyNamesSetArr.reduce(
-                    (acc, v) => acc.intersection(v),
-                    propertyNamesSetArr[0]
-                )
-                if (commonUnionKeys.size > 1)
-                    throw new Error(`union has more than 1 common keys: [${[...commonUnionKeys].join(', ')}]`)
-
-                if (commonUnionKeys.size == 1) {
-                    const commonUnionKey = commonUnionKeys.values().next().value!
-                    if (debug) console.log(spacing, 'commonUnionKey:', commonUnionKey)
-
-                    const propTypes = truthyTypes.map(t =>
-                        t.getProperties().map(s => ({ symbol: s, type: getPropType(this.checker, s) }))
-                    )
-                    const commonUnionKeyTypes = propTypes.map(
-                        arr => arr.find(({ symbol }) => symbol.name == commonUnionKey)!.type
-                    )
-
-                    const isBoolUnion = commonUnionKeyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)
-                    if (!commonUnionKeyTypes.every(t => t.isLiteral()) && !isBoolUnion) {
-                        if (debug) {
-                            for (const type of commonUnionKeyTypes) printType(type)
-                        }
-                        throw new Error(`not all values of union with common key: ${commonUnionKey} are literals`)
-                    }
-                    const commonUnionKeyValues = commonUnionKeyTypes.map(t => getLiteralValue(t)!)
-
-                    if (!commonUnionKeyValues.every(v => typeof v !== commonUnionKeyValues[0])) {
-                        if (debug) {
-                            for (const type of commonUnionKeyTypes) printType(type)
-                        }
-                        throw new Error(`not all values of union with common key: ${commonUnionKey} are the same type`)
-                    }
-                    if (!commonUnionKeyValues.every(v => typeof v !== 'object')) {
-                        throw new Error(`union with common key: ${commonUnionKey} values of bigint not supported`)
-                    }
-                    const commonUnionKeyNode = new EnumNode(false, commonUnionKeyValues, true)
-
-                    const dataNodes = Object.fromEntries(
-                        propTypes.map(
-                            (arr, i) =>
-                                [
-                                    commonUnionKeyValues[i],
-                                    new InterfaceNode(
-                                        false,
-                                        Object.fromEntries(
-                                            arr
-                                                .filter(({ symbol }) => symbol.name != commonUnionKey)
-                                                .map(
-                                                    ({ symbol, type }) =>
-                                                        [symbol.name, this.parseToNode(type, indent + 1)] as const
-                                                )
-                                        )
-                                    ),
-                                ] as const
-                        )
-                    )
-
-                    return new UnionNode(isOptional, commonUnionKey, commonUnionKeyNode, dataNodes)
-                }
-            }
-            printType(truthyType)
-            if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
-            throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
-        } else {
+        if (!truthyType.isUnion()) {
             return this.parseToNode(truthyType, indent, isOptional)
         }
+        let truthyTypes = truthyType.types
+        {
+            const enumValueTypes = truthyTypes.filter(t => t.flags & ts.TypeFlags.EnumLiteral)
+            if (enumValueTypes.length > 0) {
+                if (this.config.enumTypeOverride) {
+                    const enumNames = enumValueTypes.map(t => {
+                        const enumDec = t.symbol.declarations?.[0].parent
+                        if (!enumDec) return
+                        assert(ts.isEnumDeclaration(enumDec))
+                        return enumDec.name.getText()
+                    })
+                    for (const enumName of enumNames) {
+                        if (!enumName) continue
+                        const valueOverride = this.config.enumTypeOverride[enumName]
+                        if (!valueOverride) continue
+                        const numberNode = NumberNode.fromName(isOptional, valueOverride)
+                        if (numberNode) return numberNode
+                    }
+                }
+
+                if (!this.config.noEnumOptimalization && enumValueTypes.every(t => t.isNumberLiteral())) {
+                    const values = enumValueTypes.map(t => t.value)
+                    const min = Math.min(...values)
+                    const max = Math.max(...values)
+                    return NumberNode.optimalForRange(isOptional, min, max)
+                }
+            }
+        }
+        {
+            /* merge number literals */
+            if (truthyTypes.every(t => t.isNumberLiteral())) {
+                const values = truthyTypes.map(t => t.value)
+                return new EnumNode(isOptional, values)
+            }
+        }
+        {
+            /* merge string literals */
+            if (truthyTypes.every(t => t.isStringLiteral())) {
+                const values = truthyTypes.map(t => t.value)
+                return new EnumNode(isOptional, values)
+            }
+        }
+
+        if (truthyTypes.length == 1) {
+            const type1 = truthyTypes[0]
+            return this.parseToNode(type1, indent, isOptional)
+        }
+        if (truthyTypes.length == 2 && truthyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)) {
+            return new BooleanNode(isOptional)
+        }
+
+        if (truthyTypes.every(t => t.symbol && t.getProperties().length > 0)) {
+            const propertyNamesSetArr = truthyTypes.map(t => new Set(t.getProperties().map(s => s.name)))
+            const commonUnionKeys = propertyNamesSetArr.reduce((acc, v) => acc.intersection(v), propertyNamesSetArr[0])
+            if (commonUnionKeys.size > 1)
+                throw new Error(`union has more than 1 common keys: [${[...commonUnionKeys].join(', ')}]`)
+
+            if (commonUnionKeys.size == 1) {
+                const commonUnionKey = commonUnionKeys.values().next().value!
+                if (debug) console.log(spacing, 'commonUnionKey:', commonUnionKey)
+
+                const propTypes = truthyTypes.map(t =>
+                    t.getProperties().map(s => ({ symbol: s, type: getPropType(this.checker, s) }))
+                )
+                const commonUnionKeyTypes = propTypes.map(
+                    arr => arr.find(({ symbol }) => symbol.name == commonUnionKey)!.type
+                )
+
+                const isBoolUnion = commonUnionKeyTypes.every(t => t.flags & ts.TypeFlags.BooleanLiteral)
+                if (!commonUnionKeyTypes.every(t => t.isLiteral()) && !isBoolUnion) {
+                    if (debug) {
+                        for (const type of commonUnionKeyTypes) printType(type)
+                    }
+                    throw new Error(`not all values of union with common key: ${commonUnionKey} are literals`)
+                }
+                const commonUnionKeyValues = commonUnionKeyTypes.map(t => getLiteralValue(t)!)
+
+                if (!commonUnionKeyValues.every(v => typeof v !== commonUnionKeyValues[0])) {
+                    if (debug) {
+                        for (const type of commonUnionKeyTypes) printType(type)
+                    }
+                    throw new Error(`not all values of union with common key: ${commonUnionKey} are the same type`)
+                }
+                if (!commonUnionKeyValues.every(v => typeof v !== 'object')) {
+                    throw new Error(`union with common key: ${commonUnionKey} values of bigint not supported`)
+                }
+                const commonUnionKeyNode = new EnumNode(false, commonUnionKeyValues, true)
+
+                const dataNodes = Object.fromEntries(
+                    propTypes.map(
+                        (arr, i) =>
+                            [
+                                commonUnionKeyValues[i],
+                                new InterfaceNode(
+                                    false,
+                                    Object.fromEntries(
+                                        arr
+                                            .filter(({ symbol }) => symbol.name != commonUnionKey)
+                                            .map(
+                                                ({ symbol, type }) =>
+                                                    [symbol.name, this.parseToNode(type, indent + 1)] as const
+                                            )
+                                    )
+                                ),
+                            ] as const
+                    )
+                )
+
+                return new UnionNode(isOptional, commonUnionKey, commonUnionKeyNode, dataNodes)
+            }
+        }
+        printType(truthyType)
+        if (debug) console.log(truthyTypes.map(t => [t.flags, t.symbol?.name]))
+        throw new Error(`truthy types other than 1: ${truthyTypes.length}`)
     }
 
     private handleIntersection(type: ts.IntersectionType, indent: number, isOptional: boolean | undefined) {
