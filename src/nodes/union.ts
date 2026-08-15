@@ -36,17 +36,15 @@ export class UnionNode extends Node {
                 shr,
                 ind,
                 this.keyNode.values
-                    .map(
-                        (key, i) =>
-                            (i > 0 ? Node.indent(ind.indent) : '') +
-                            InterfaceNode.print(
-                                shr,
-                                { indent: ind.indent + 1 },
-                                {
-                                    [this.keyName]: new LiteralNode(false, this.keyNode.values[i]),
-                                    ...this.dataNodes[`${key}`].nodes,
-                                }
-                            )
+                    .map((key, i) =>
+                        InterfaceNode.print(
+                            shr,
+                            { indent: ind.indent + 1 },
+                            {
+                                [this.keyName]: new LiteralNode(false, this.keyNode.values[i]),
+                                ...this.dataNodes[`${key}`].nodes,
+                            }
+                        )
                     )
                     .join(' | ') + ')'
             )

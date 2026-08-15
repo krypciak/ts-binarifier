@@ -19,9 +19,9 @@ export class RecordNode extends Node {
             shr,
             ind,
             'Record<' +
-                this.key.toString(shr, { indent: ind.indent + 1 }) +
+                this.key.toString(shr, { indent: ind.indent }) +
                 ', ' +
-                this.value.toString(shr, { indent: ind.indent + 1 }) +
+                this.value.toString(shr, { indent: ind.indent }) +
                 '>'
         )
     }
