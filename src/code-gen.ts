@@ -31,8 +31,7 @@ export function codeGen(config: CodeGenConfig) {
     config.decoderPath ??=
         './' + path.relative(destDir, fileURLToPath(new URL('./decoder', import.meta.url))).replace(/\\/g, '/')
     config.typeImportPath ??= './' + path.relative(destDir, config.typeImportPath)
-    const code = genParsingClass(config)
-    return code
+    return genParsingClass(config)
 }
 
 export interface EncoderDecoder<T = unknown> {
@@ -49,7 +48,7 @@ function genParsingClass({
     decoderPath,
     encodeConfig,
     decodeConfig,
-}: CodeGenConfig): string {
+}: CodeGenConfig): { code: string; codeHash: string } {
     const constants: string[] = []
     const imports: ImportsRecord = {}
     addImport(imports, encoderPath!, 'Encoder')
@@ -102,8 +101,7 @@ function genParsingClass({
         body: `const decoder = new Decoder(buf)\n` + 'return ' + decodeCode,
     }
     decodeFunctions[mainDecodeFunction.name] = mainDecodeFunction
-
-    return (
+    const code =
         importsToString(imports) +
         '\n' +
         '\n' +
@@ -120,5 +118,6 @@ function genParsingClass({
             .map(config => functionConfigToString(config, 1))
             .join('\n') +
         '}\n'
-    )
+
+    return { code, codeHash }
 }

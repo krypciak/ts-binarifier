@@ -55,7 +55,7 @@ export async function generateEncodeDecodeScripts(config: Config) {
         const encoderPath = baseImportPath ? `${baseImportPath}/src/encoder` : undefined
         const decoderPath = baseImportPath ? `${baseImportPath}/src/decoder` : undefined
 
-        let code = codeGen({
+        let { code, codeHash } = codeGen({
             type: node,
             className: outClassName,
             typeImportPath: fullPath,
@@ -66,6 +66,7 @@ export async function generateEncodeDecodeScripts(config: Config) {
             encodeConfig,
             decodeConfig,
         })
+        if (printNode) console.log('codeHash:', codeHash)
 
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
         await fs.promises.writeFile(outPath, code)

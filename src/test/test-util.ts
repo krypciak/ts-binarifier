@@ -46,7 +46,7 @@ async function encodeDecodeDataSetup<T>(
 ): Promise<EncoderDecoder<T>> {
     const { node, fullPath } = await setupParserAndParseNode(filePath, typeName, parserConfig)
     const outFile = await createTempFile('.ts')
-    const code = codeGen({
+    const { code } = codeGen({
         type: node,
         className: 'Gen',
         typeImportPath: fullPath,
