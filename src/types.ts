@@ -17,8 +17,11 @@ export interface FunctionConfig {
     returnType?: string
 }
 
+interface RefVar {
+    v: number
+}
 export interface GenDataBase {
-    varCounter: { v: number, func: number, union: number, type: number }
+    varCounter: { vars: RefVar; func: RefVar; union: RefVar; type: RefVar }
     indent: number
 
     functionHashToName: Record<string, string>

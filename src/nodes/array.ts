@@ -1,4 +1,4 @@
-import { getOrDefineFunction } from '../code-gen-functions'
+import { getOrDefineFunction, resetVarCounterForFunction } from '../code-gen-functions'
 import { Node } from './node'
 import { NumberNode, NumberType } from './number'
 import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
@@ -17,15 +17,21 @@ export class ArrayNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
+        const varCounter = resetVarCounterForFunction(data.varCounter)
         const funcConfig = getOrDefineFunction(data, {
-            name: 'encodeArray' + data.varCounter.func++,
+            name: 'encodeArray' + data.varCounter.func.v++,
             arguments: [`encoder: Encoder`, `array: ` + this.type.toStringInGen(data, { indent: 0 }) + `[]`],
             body:
-                this.sizeNode.genEncode({ ...data, varName: `array.length`, indent: 0 }) +
+                this.sizeNode.genEncode({
+                    ...data,
+                    varCounter,
+                    varName: `array.length`,
+                    indent: 0,
+                }) +
                 '\n' +
                 `for (const v of array) {\n` +
                 Node.indent(1) +
-                `${this.type.genEncode({ ...data, varName: 'v', indent: 1 })}` +
+                `${this.type.genEncode({ ...data, varCounter, varName: 'v', indent: 1 })}` +
                 `\n` +
                 `}`,
         })
@@ -34,16 +40,17 @@ export class ArrayNode extends Node {
     }
 
     genDecode(data: GenDecodeData): string {
+        const varCounter = resetVarCounterForFunction(data.varCounter)
         const funcConfig = getOrDefineFunction(data, {
-            name: 'decodeArray' + data.varCounter.func++,
+            name: 'decodeArray' + data.varCounter.func.v++,
             arguments: ['decoder: Decoder'],
             body:
-                `const len = ${this.sizeNode.genDecode(data)}\n` +
+                `const len = ${this.sizeNode.genDecode({ ...data, varCounter })}\n` +
                 `const array = new Array(len)\n` +
                 `for (let i = 0; i < len; i++) {\n` +
                 Node.indent(1) +
                 `array[i] = ` +
-                `${this.type.genDecode({ ...data, indent: 1 })}\n` +
+                `${this.type.genDecode({ ...data, varCounter, indent: 1 })}\n` +
                 `}\n` +
                 `return array`,
         })

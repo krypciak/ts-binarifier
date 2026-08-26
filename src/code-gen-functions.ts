@@ -19,6 +19,10 @@ export function getOrDefineFunction(data: GenDataBase, config: FunctionConfig): 
     return config
 }
 
+export function resetVarCounterForFunction(varCounter: GenDataBase['varCounter']): GenDataBase['varCounter'] {
+    return { ...varCounter, vars: { v: 0 }, type: { v: 0 } }
+}
+
 export function functionConfigToString(config: FunctionConfig, indent: number): string {
     return (
         Node.indent(indent) +

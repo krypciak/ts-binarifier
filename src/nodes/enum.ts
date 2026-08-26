@@ -44,7 +44,7 @@ export class EnumNode<T extends string | number | boolean> extends Node {
     }
 
     private createUnionVarName(data: GenEncodeData): string {
-        const varName = `union${data.varCounter.union++}`
+        const varName = `union${data.varCounter.union.v++}`
         const valuesStrArr = `[${this.values.map(v => (typeof v == 'string' ? `'${v}'` : v)).join(', ')}]`
         data.constants.push(`${varName} = ${valuesStrArr} as const`)
 
@@ -59,7 +59,7 @@ export class EnumNode<T extends string | number | boolean> extends Node {
     }
 
     getIndexVarName(data: GenDataBase) {
-        return `i${data.varCounter.v++}`
+        return `i${data.varCounter.vars.v++}`
     }
 
     genEncode(data: GenEncodeData): string {

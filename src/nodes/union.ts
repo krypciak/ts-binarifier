@@ -1,4 +1,4 @@
-import { getOrDefineFunction } from '../code-gen-functions'
+import { getOrDefineFunction, resetVarCounterForFunction } from '../code-gen-functions'
 import { gray, green } from '../colors'
 import type { GenEncodeData, GenDecodeData, IndividualPrintConfig, SharedPrintConfig } from '../types'
 import { EnumNode } from './enum'
@@ -52,10 +52,11 @@ export class UnionNode extends Node {
     }
 
     genEncode(data: GenEncodeData): string {
-        const funcName = 'encodeUnion' + data.varCounter.func++
+        const funcName = 'encodeUnion' + data.varCounter.func.v++
         const indexVar = this.keyNode.getIndexVarName(data)
-        data.varCounter.v--
+        data.varCounter.vars.v--
 
+        const varCounter = resetVarCounterForFunction(data.varCounter)
         const funcConfig = getOrDefineFunction(data, {
             name: funcName,
             arguments: [
@@ -64,7 +65,7 @@ export class UnionNode extends Node {
                 // this.toStringInGen(data, { indent: 0 })
             ],
             body:
-                `${this.keyNode.genEncode({ ...data, indent: 0, varName: 'union' + InterfaceNode.genPropertyAccess(this.keyName) })}\n` +
+                `${this.keyNode.genEncode({ ...data, varCounter, indent: 0, varName: 'union' + InterfaceNode.genPropertyAccess(this.keyName) })}\n` +
                 `switch (${indexVar}) {\n` +
                 this.keyNode.values
                     .map(
@@ -72,7 +73,7 @@ export class UnionNode extends Node {
                             Node.indent(1) +
                             `case ${i}: { // ${this.keyName}: ${new LiteralNode(false, key).printNoColor()}\n` +
                             Node.indent(2) +
-                            this.dataNodes[`${key}`].genEncode({ ...data, varName: 'union', indent: 2 }) +
+                            this.dataNodes[`${key}`].genEncode({ ...data, varCounter, varName: 'union', indent: 2 }) +
                             '\n' +
                             Node.indent(2) +
                             `break\n` +
@@ -89,11 +90,12 @@ export class UnionNode extends Node {
     genDecode(data: GenDecodeData): string {
         const indexVar = this.keyNode.getIndexVarName(data)
 
+        const varCounter = resetVarCounterForFunction(data.varCounter)
         const funcConfig = getOrDefineFunction(data, {
-            name: 'decodeUnion' + data.varCounter.func++,
+            name: 'decodeUnion' + data.varCounter.func.v++,
             arguments: ['decoder: Decoder'],
             body:
-                `const ${indexVar} = ${this.keyNode.unionIdNode.genDecode(data)}\n` +
+                `const ${indexVar} = ${this.keyNode.unionIdNode.genDecode({ ...data, varCounter })}\n` +
                 `switch (${indexVar}) {\n` +
                 this.keyNode.values
                     .map(
@@ -101,7 +103,7 @@ export class UnionNode extends Node {
                             Node.indent(1) +
                             `case ${i}: ` +
                             `return ` +
-                            this.dataNodes[`${key}`].genDecode({ ...data, indent: 1 }) +
+                            this.dataNodes[`${key}`].genDecode({ ...data, varCounter, indent: 1 }) +
                             '\n'
                     )
                     .join('') +

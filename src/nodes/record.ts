@@ -28,10 +28,10 @@ export class RecordNode extends Node {
 
     genEncode(data: GenEncodeData): string {
         return this.genEncodeWrapOptional(data, data => {
-            const keyVar = `k${data.varCounter.v++}`
-            const valueVar = `v${data.varCounter.v++}`
-            const recordType = `Record${data.varCounter.type++}`
-            const recordKeyType = `RecordKey${data.varCounter.type++}`
+            const keyVar = `k${data.varCounter.vars.v++}`
+            const valueVar = `v${data.varCounter.vars.v++}`
+            const recordType = `Record${data.varCounter.type.v++}`
+            const recordKeyType = `RecordKey${data.varCounter.type.v++}`
             return (
                 this.sizeNode.genEncode({ ...data, varName: `Object.keys(${data.varName}).length` }) +
                 '\n' +
