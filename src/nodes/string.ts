@@ -20,7 +20,7 @@ export class StringNode extends Node {
             const bufVar = `buf${data.varCounter.vars.v++}`
 
             return (
-                `const ${bufVar} = new TextEncoder().encode(${data.varName})` +
+                `const ${bufVar} = new TextEncoder().encode(String(${data.varName}))` +
                 '\n' +
                 Node.indent(data.indent) +
                 this.maxSizeNode.genEncode({ ...data, varName: `${bufVar}.length` }) +
