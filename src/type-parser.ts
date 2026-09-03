@@ -291,6 +291,7 @@ export class TypeParser {
             }
         }
         console.log(spacing, 'intersection')
+        printType(type)
 
         throw new Error('unimplemented intersection')
     }
